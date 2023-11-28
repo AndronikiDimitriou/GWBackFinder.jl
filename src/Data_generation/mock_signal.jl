@@ -1,4 +1,6 @@
-function f26(S, S0, n0, n1, n2, n3, n4, n5, n6, n7, n8, n9, n10, n11, n12, n13, n14, n15, n16, n17, n18, n19, n20, n21, n22, n23, n24, n25, n26, As)
+
+function f26(S, S0, n0, n1, n2, n3, n4, n5, n6, n7, n8, n9, n10, n11, n12, n13, n14, n15, n16, n17, n18, n19, n20, n21, n22, n23, n24, n25, n26, As,Sb1_new3, Sb2_new3, Sb3_new3, Sb4_new3, Sb5_new3, Sb6_new3, Sb7_new3, Sb8_new3, Sb9_new3, Sb10_new3, Sb11_new3, Sb12_new3, Sb13_new3, Sb14_new3, Sb15_new3, Sb16_new3, Sb17_new3, Sb18_new3, Sb19_new3, Sb20_new3, Sb21_new3, Sb22_new3, Sb23_new3, Sb24_new3, Sb25_new3, Sb26_new3, Sb27_new3)
+
     if S <= Sb1_new3
 
         result = As * (Sb13_new3 / S0)^(n13 - n12) * (Sb12_new3 / S0)^(n12 - n11) * (Sb11_new3 / S0)^(n11 - n10) * (Sb10_new3 / S0)^(n10 - n9) *
@@ -7,20 +9,16 @@ function f26(S, S0, n0, n1, n2, n3, n4, n5, n6, n7, n8, n9, n10, n11, n12, n13, 
 
     elseif Sb1_new3 < S <= Sb2_new3
 
-
         result = As * (Sb13_new3 / S0)^(n13 - n12) * (Sb12_new3 / S0)^(n12 - n11) * (Sb11_new3 / S0)^(n11 - n10) * (Sb10_new3 / S0)^(n10 - n9)*(Sb9_new3 / S0)^(n9 - n8) * (Sb8_new3 / S0)^(n8 - n7) * (Sb7_new3 / S0)^(n7 - n6) * (Sb6_new3 / S0)^(n6 - n5) * (Sb5_new3 / S0)^(n5 - n4)*(Sb4_new3 / S0)^(n4 - n3) * (Sb3_new3 / S0)^(n3 - n2) * (Sb2_new3 / S0)^(n2 - n1) * (S / S0)^(n1)
 
     elseif Sb2_new3 < S <= Sb3_new3
         result = As * (Sb13_new3 / S0)^(n13 - n12) * (Sb12_new3 / S0)^(n12 - n11) * (Sb11_new3 / S0)^(n11 - n10) * (Sb10_new3 / S0)^(n10 - n9)*(Sb9_new3 / S0)^(n9 - n8) * (Sb8_new3 / S0)^(n8 - n7) * (Sb7_new3 / S0)^(n7 - n6) * (Sb6_new3 / S0)^(n6 - n5) * (Sb5_new3 / S0)^(n5 - n4)*(Sb4_new3 / S0)^(n4 - n3) * (Sb3_new3 / S0)^(n3 - n2) * (S / S0)^(n2)
 
-
     elseif Sb3_new3 < S <= Sb4_new3
         result = As * (Sb13_new3 / S0)^(n13 - n12) * (Sb12_new3 / S0)^(n12 - n11) * (Sb11_new3 / S0)^(n11 - n10) * (Sb10_new3 / S0)^(n10 - n9)*(Sb9_new3 / S0)^(n9 - n8) * (Sb8_new3 / S0)^(n8 - n7) * (Sb7_new3 / S0)^(n7 - n6) * (Sb6_new3 / S0)^(n6 - n5) * (Sb5_new3 / S0)^(n5 - n4)*(Sb4_new3 / S0)^(n4 - n3) * (S / S0)^(n3)
 
-
     elseif Sb4_new3 < S <= Sb5_new3
         result = As * (Sb13_new3 / S0)^(n13 - n12) * (Sb12_new3 / S0)^(n12 - n11) * (Sb11_new3 / S0)^(n11 - n10) * (Sb10_new3 / S0)^(n10 - n9)*(Sb9_new3 / S0)^(n9 - n8) * (Sb8_new3 / S0)^(n8 - n7) * (Sb7_new3 / S0)^(n7 - n6) * (Sb6_new3 / S0)^(n6 - n5) * (Sb5_new3 / S0)^(n5 - n4)*(S / S0)^(n4)
-
 
     elseif Sb5_new3 < S <= Sb6_new3
         result = As * (Sb13_new3 / S0)^(n13 - n12) * (Sb12_new3 / S0)^(n12 - n11) * (Sb11_new3 / S0)^(n11 - n10) * (Sb10_new3 / S0)^(n10 - n9)*(Sb9_new3 / S0)^(n9 - n8) * (Sb8_new3 / S0)^(n8 - n7) * (Sb7_new3 / S0)^(n7 - n6) * (Sb6_new3 / S0)^(n6 - n5) * (S / S0)^(n5)
@@ -30,7 +28,6 @@ function f26(S, S0, n0, n1, n2, n3, n4, n5, n6, n7, n8, n9, n10, n11, n12, n13, 
 
     elseif Sb7_new3 < S <= Sb8_new3
         result = As * (Sb13_new3 / S0)^(n13 - n12) * (Sb12_new3 / S0)^(n12 - n11) * (Sb11_new3 / S0)^(n11 - n10) * (Sb10_new3 / S0)^(n10 - n9)*(Sb9_new3 / S0)^(n9 - n8) * (Sb8_new3 / S0)^(n8 - n7) * (S / S0)^(n7)
-
 
     elseif Sb8_new3 < S <= Sb9_new3
         result = As * (Sb13_new3 / S0)^(n13 - n12) * (Sb12_new3 / S0)^(n12 - n11) * (Sb11_new3 / S0)^(n11 - n10) * (Sb10_new3 / S0)^(n10 - n9)*(Sb9_new3 / S0)^(n9 - n8) * (S / S0)^(n8)
@@ -94,15 +91,15 @@ function f26(S, S0, n0, n1, n2, n3, n4, n5, n6, n7, n8, n9, n10, n11, n12, n13, 
 end
 
 
-function model(z,channel)
-    e  = 15+np.random.randn()*15*.2
-    z  =-12+z[:27].numpy()*(12-(-12))                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        
-    z2 =-14+z[27].numpy()*(-6-(-14)) 
-    z3 = z[28].numpy()
-
+function model(z1,f,channel,idx,f_filtered,logbins_28,logbins,Sb1_new3, Sb2_new3, Sb3_new3, Sb4_new3, Sb5_new3, Sb6_new3, Sb7_new3, Sb8_new3, Sb9_new3, Sb10_new3, Sb11_new3, Sb12_new3, Sb13_new3, Sb14_new3, Sb15_new3, Sb16_new3, Sb17_new3, Sb18_new3, Sb19_new3, Sb20_new3, Sb21_new3, Sb22_new3, Sb23_new3, Sb24_new3, Sb25_new3, Sb26_new3, Sb27_new3)
+    
+    e  = 15+randn()*15*.2
+    z  =-12 .+z1[1:27]*(12-(-12))                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            
+    z2 =-14+z1[27]*(-6-(-14)) 
+    z3 = z1[28]
+    print(z,z2,z3)
     ## n part
-    stds_omega = [sqrt.(f26(fi, logbins_28[14], z[1], z[2], z[3], z[4], z[5], z[6], z[7], z[8], z[9], z[10], z[11], z[12], z[13], z[14], z[15], z[16], z[17], z[18], z[19], z[20], z[21], z[22], z[23], z[24], z[25], z[26], z[27], 10^(z2))) for fi in f]
-    #stds_omega=sqrt.(Omega_gw.(A_001,f,gamma))  #compute sqrt(h^2Ωnoise(fi))
+    stds_omega = [sqrt.(f26(fi, logbins_28[14], z[1], z[2], z[3], z[4], z[5], z[6], z[7], z[8], z[9], z[10], z[11], z[12], z[13], z[14], z[15], z[16], z[17], z[18], z[19], z[20], z[21], z[22], z[23], z[24], z[25], z[26], z[27], 10^(z2), Sb1_new3, Sb2_new3, Sb3_new3, Sb4_new3, Sb5_new3, Sb6_new3, Sb7_new3, Sb8_new3, Sb9_new3, Sb10_new3, Sb11_new3, Sb12_new3, Sb13_new3, Sb14_new3, Sb15_new3, Sb16_new3, Sb17_new3, Sb18_new3, Sb19_new3, Sb20_new3, Sb21_new3, Sb22_new3, Sb23_new3, Sb24_new3, Sb25_new3, Sb26_new3, Sb27_new3)) for fi in f]
     stds_omega_cuda = CuArray(Float32.(stds_omega))
 
     # repeat for each chunk
@@ -116,7 +113,6 @@ function model(z,channel)
 
 
     if channel=="AA"
-
         stds_n = sqrt.(Omega_noiseh2_AA.(f, 2.5 * 1e9, 3 * 1e8, e, z3))  #compute sqrt(h^2Ωnoise(fi))
         stds_n_cuda = CuArray(Float32.(stds_n))
 
@@ -206,7 +202,6 @@ function model(z,channel)
     Data_total = vcat(Data[1:970], weighted_data)
     f_total = vcat(f[1:970], weighted_f)
 
-
-    return  vcat((log10(Data_total),e)), log10(f_total)
+    return  vcat((log10.(Data_total),e)), log10.(f_total)
 end
 
