@@ -70,7 +70,7 @@ struct zNoise{T<:Real} <: zType
 end
 
 
-function different_signals(z::zPowerLaw,z_N::zNoise, channel::String, f::Vector, idx::Vector)
+function different_signals(z::zPowerLaw,z_N::zNoise, channel::String, f,f_filtered, logbins:: Vector, idx::Vector)
     P,A = z_N.val[1],z_N.val[2]
     stds_omega = sqrt.(Omega_powerlaw(z.val[1],f,z.val[2])) 
     stds_omega_cuda = CuArray(Float32.(stds_omega))
@@ -180,10 +180,9 @@ function different_signals(z::zPowerLaw,z_N::zNoise, channel::String, f::Vector,
 end
 
 
-
-function different_signals(z::zPeak,z_N::zNoise,channel::String, f::Vector, idx::Vector)
+function different_signals(z::zPeak,z_N::zNoise,channel::String, f,f_filtered, logbins:: Vector, idx::Vector)
+    
     P,A = z_N.val[1],z_N.val[2]
-
     stds_omega = sqrt.(Omega_peak(z.val[1],f,z.val[2],z.val[3])) 
     stds_omega_cuda = CuArray(Float32.(stds_omega))
 
@@ -292,7 +291,7 @@ function different_signals(z::zPeak,z_N::zNoise,channel::String, f::Vector, idx:
     return  log10.(Data_total), log10.(f_total)
 end
 
-function different_signals(z::zWiggly,z_N::zNoise,channel::String, f::Vector, idx::Vector)
+function different_signals(z::zWiggly,z_N::zNoise,channel::String, f,f_filtered, logbins:: Vector,idx::Vector)
 
     P,A = z_N.val[1],z_N.val[2]
 
@@ -405,7 +404,7 @@ function different_signals(z::zWiggly,z_N::zNoise,channel::String, f::Vector, id
     return  log10.(Data_total), log10.(f_total)
 end
 
-function different_signals(z::zDouble_peaks,z_N::zNoise,channel::String, f::Vector, idx::Vector)
+function different_signals(z::zDouble_peaks,z_N::zNoise,channel::String, f,f_filtered,logbins:: Vector, idx::Vector)
 
     P,A = z_N.val[1],z_N.val[2]
 
@@ -518,7 +517,7 @@ function different_signals(z::zDouble_peaks,z_N::zNoise,channel::String, f::Vect
     return  log10.(Data_total), log10.(f_total)
 end
 
-function different_signals(z::zBroken_powerlaw,z_N::zNoise,channel::String, f::Vector, idx::Vector)
+function different_signals(z::zBroken_powerlaw,z_N::zNoise,channel::String, f,f_filtered, logbins:: Vector, idx::Vector)
     P,A = z_N.val[1],z_N.val[2]
 
     stds_omega = sqrt.(Omega_broken_powerlaw(z.val[1],f,z.val[2],z.val[3],z.val[4])) 
@@ -630,7 +629,7 @@ function different_signals(z::zBroken_powerlaw,z_N::zNoise,channel::String, f::V
     return  log10.(Data_total), log10.(f_total)
 end
 
-function different_signals(z::zThree_peaks,z_N::zNoise,channel::String, f::Vector, idx::Vector)
+function different_signals(z::zThree_peaks,z_N::zNoise,channel::String, f,f_filtered,logbins:: Vector, idx::Vector)
 
     P,A = z_N.val[1],z_N.val[2]
 

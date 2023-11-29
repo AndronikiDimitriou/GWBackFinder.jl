@@ -19,3 +19,4 @@ plt.plot(freq, data[1][1])
 plt.show()
 plt.gcf()
 
+
