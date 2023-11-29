@@ -27,6 +27,7 @@ plt.clf()
 plt.plot(freq, data[1][1])
 plt.plot(log10.(f),Data)
 
+"""
 plt.axvline(log10(Sb1_new3))
 plt.axvline(log10(Sb2_new3))
 plt.axvline(log10(Sb3_new3))
@@ -54,8 +55,7 @@ plt.axvline(log10(Sb24_new3))
 plt.axvline(log10(Sb25_new3))
 plt.axvline(log10(Sb26_new3))
 plt.axvline(log10(Sb27_new3))
-
-
+"""
 
 plt.show()
 plt.gcf()
