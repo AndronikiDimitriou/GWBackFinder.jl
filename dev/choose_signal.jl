@@ -11,13 +11,13 @@ Sb1_new3, Sb2_new3, Sb3_new3, Sb4_new3, Sb5_new3, Sb6_new3, Sb7_new3, Sb8_new3, 
 
 length(logbins_27)
 
-z_power_law_test         = GWBackFinder.zPowerLaw([-9,0.6])
-z_peak_test              = GWBackFinder.zPeak([-9.,0.002,0.2])
-z_wiggly_test            = GWBackFinder.zWiggly([-10,2,0.1])
-z_Broken_powerlaw_test   = GWBackFinder.zBroken_powerlaw([-11,-1,2/3,0.002])
-z_Double_peaks_test      = GWBackFinder.zDouble_peaks([-11.,-10.,0.001,0.01,0.1,0.1])
-z_three_peaks_test       = GWBackFinder.zThree_peaks([-10.,-10.,-10.,5*10^(-4),2*10^(-3),8*10^(-3),0.1,0.1,0.1])
-z_noise                  = GWBackFinder.zNoise([15.,3.])
+z_power_law_test         =  GWBackFinder.zPowerLaw([-9,0.6])
+z_peak_test              =  GWBackFinder.zPeak([-9.,0.002,0.2])
+z_wiggly_test            =  GWBackFinder.zWiggly([-10,2,0.1])
+z_Broken_powerlaw_test   =  GWBackFinder.zBroken_powerlaw([-11,-1,2/3,0.002])
+z_Double_peaks_test      =  GWBackFinder.zDouble_peaks([-11.,-10.,0.001,0.01,0.1,0.1])
+z_three_peaks_test       =  GWBackFinder.zThree_peaks([-10.,-10.,-10.,5*10^(-4),2*10^(-3),8*10^(-3),0.1,0.1,0.1])
+z_noise                  =  GWBackFinder.zNoise([15.,3.])
 
 plt.clf()
 Data,f_total = GWBackFinder.different_signals(z_power_law_test,z_noise,"AA",f,f_filtered,logbins,idx)
