@@ -6,8 +6,8 @@ function binning(f)
     idx = [searchsortedlast(logbins, f_filtered[i]) for i in eachindex(f_filtered)]
 
     ## 28 bins
-    logbins_28 = 10 .^ range(log10(3 * 1e-5), stop=log10(0.5), length=28)
-    idx_28 = [searchsortedlast(logbins_28, f[i]) for i in eachindex(f)]
-    idx_28[1]=1
-    return idx,idx_28,logbins_28,logbins,f_filtered
+    logbins_27 = 10 .^ range(log10(3 * 1e-5), stop=log10(0.5), length=27)
+    idx_27 = [searchsortedlast(logbins_27, f[i]) for i in eachindex(f)]
+    idx_27[1]=1
+    return idx,idx_27,logbins_27,logbins,f_filtered
 end
