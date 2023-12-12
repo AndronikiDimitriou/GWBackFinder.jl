@@ -37,7 +37,7 @@ end
 abstract type zType end
 
 struct zPowerLaw{T<:Real} <: zType
-    val::AbstractVector{T}
+    val::PyList{Any}{T}
 end
 
 struct zPeak{T<:Real} <: zType
