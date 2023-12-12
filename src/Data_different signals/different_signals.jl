@@ -26,47 +26,55 @@ function Omega_three_peaks(A_1,A_2,A_3,f,f1,f2,f3,Delta1,Delta2,Delta3)
 end
 
 struct Zeta{T} # this is a structure, modify it with the parameters you need
-    z_1::AbstractVector{T}
-    z_2::AbstractVector{T}
-    z_3::AbstractVector{T}
-    z_4::AbstractVector{T}
-    z_5::AbstractVector{T}
-    z_6::AbstractVector{T}
+    z_1::Vector{T}
+    z_2::Vector{T}
+    z_3::Vector{T}
+    z_4::Vector{T}
+    z_5::Vector{T}
+    z_6::Vector{T}
+end
+
+function Zeta(z_1::AbstractVector{T}, z_2::AbstractVector{T}, z_3::AbstractVector{T}, z_4::AbstractVector{T}, z_5::AbstractVector{T}, z_6::AbstractVector{T}) where {T<:Real}
+    return Zeta{T}(z_1, z_2, z_3, z_4, z_5, z_6)
 end
 
 abstract type zType end
 
 struct zPowerLaw{T<:Real} <: zType
-    val::PyList{Any}{T}
+    val::Vector{T}
+end
+
+function zPowerLaw(val::AbstractVector{T}) where {T<:Real}
+    return zPowerLaw{T}(val)
 end
 
 struct zPeak{T<:Real} <: zType
-    val::AbstractVector{T}
+    val::Vector{T}
 end
 
 struct zWiggly{T<:Real} <: zType
-    val::AbstractVector{T}
+    val::Vector{T}
 end
 
 struct zBroken_powerlaw{T<:Real} <: zType
-    val::AbstractVector{T}
+    val::Vector{T}
 end
 
 struct zThree_peaks{T<:Real} <: zType
-    val::AbstractVector{T}
+    val::Vector{T}
 end
 
 struct zDouble_peaks{T<:Real} <: zType
-    val::AbstractVector{T}
+    val::Vector{T}
 end
 
 struct zTest{T<:Real} <: zType
-    val::AbstractVector{T}
+    val::Vector{T}
 end
 
 
 struct zNoise{T<:Real} <: zType
-    val::AbstractVector{T}
+    val::Vector{T}
 end
 
 
