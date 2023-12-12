@@ -52,31 +52,57 @@ struct zPeak{T<:Real} <: zType
     val::Vector{T}
 end
 
+function zPeak(val::AbstractVector{T}) where {T<:Real}
+    return zPeak{T}(val)
+end
+
 struct zWiggly{T<:Real} <: zType
     val::Vector{T}
+end
+
+function zWiggly(val::AbstractVector{T}) where {T<:Real}
+    return zWiggly{T}(val)
 end
 
 struct zBroken_powerlaw{T<:Real} <: zType
     val::Vector{T}
 end
 
+function zBroken_powerlaw(val::AbstractVector{T}) where {T<:Real}
+    return zBroken_powerlaw{T}(val)
+end
+
 struct zThree_peaks{T<:Real} <: zType
     val::Vector{T}
+end
+
+function zThree_peaks(val::AbstractVector{T}) where {T<:Real}
+    return zThree_peaks{T}(val)
 end
 
 struct zDouble_peaks{T<:Real} <: zType
     val::Vector{T}
 end
 
+function zDouble_peaks(val::AbstractVector{T}) where {T<:Real}
+    return zDouble_peaks{T}(val)
+end
+
 struct zTest{T<:Real} <: zType
     val::Vector{T}
 end
 
+function zTest(val::AbstractVector{T}) where {T<:Real}
+    return zTest{T}(val)
+end
 
 struct zNoise{T<:Real} <: zType
     val::Vector{T}
 end
 
+function zNoise(val::AbstractVector{T}) where {T<:Real}
+    return zNoise{T}(val)
+end
 
 function different_signals(z::zPowerLaw,z_N::zNoise, channel::String, f,f_filtered, logbins:: AbstractVector, idx::AbstractVector)
     P,A = z_N.val[1],z_N.val[2]
