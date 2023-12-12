@@ -73,4 +73,4 @@ end
     write_sample(z1[i, :], i)
 end
 
-çpwd()
+pwd()
