@@ -26,12 +26,12 @@ function Omega_three_peaks(A_1,A_2,A_3,f,f1,f2,f3,Delta1,Delta2,Delta3)
 end
 
 struct Zeta{T} # this is a structure, modify it with the parameters you need
-    z_1::Vector{T}
-    z_2::Vector{T}
-    z_3::Vector{T}
-    z_4::Vector{T}
-    z_5::Vector{T}
-    z_6::Vector{T}
+    z_1::AbstractVector{T}
+    z_2::AbstractVector{T}
+    z_3::AbstractVector{T}
+    z_4::AbstractVector{T}
+    z_5::AbstractVector{T}
+    z_6::AbstractVector{T}
 end
 
 abstract type zType end
