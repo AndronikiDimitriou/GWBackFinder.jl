@@ -105,6 +105,7 @@ function zNoise(val::AbstractVector{T}) where {T<:Real}
 end
 
 function different_signals(z::zPowerLaw,z_N::zNoise, channel::String, f,f_filtered, logbins:: AbstractVector, idx::AbstractVector)
+    CUDA.device_reset!
     P,A = z_N.val[1],z_N.val[2]
     stds_omega = sqrt.(Omega_powerlaw(z.val[1],f,z.val[2])) 
     stds_omega_cuda = CuArray(Float32.(stds_omega))
@@ -119,103 +120,105 @@ function different_signals(z::zPowerLaw,z_N::zNoise, channel::String, f,f_filter
     CUDA.@sync c2 = (samples_noise5 .^ 2 + samples_noise6 .^ 2) ./ 2
 
 
-    if channel=="AA"
-        stds_n = sqrt.(Omega_noiseh2_AA.(f, 2.5 * 1e9, 3 * 1e8, P, A))  #compute sqrt(h^2Ωnoise(fi))
-        stds_n_cuda = CuArray(Float32.(stds_n))
+    stds_n = sqrt.(Omega_noiseh2_AA.(f, 2.5 * 1e9, 3 * 1e8, P, A))  #compute sqrt(h^2Ωnoise(fi))
+    stds_n_cuda = CuArray(Float32.(stds_n))
 
-        std_eps = CUDA.randn(Float32, length(stds_n), 94)
-        CUDA.@sync samples_noise3 = stds_n_cuda .* std_eps
+    std_eps = CUDA.randn(Float32, length(stds_n), 94)
+    CUDA.@sync samples_noise3 = stds_n_cuda .* std_eps
 
-        std_eps = CUDA.randn(Float32, length(stds_n), 94)
-        CUDA.@sync samples_noise4 = stds_n_cuda .* std_eps
-
-
-        CUDA.@sync c1 = (samples_noise3 .^ 2 + samples_noise4 .^ 2) / 2
+    std_eps = CUDA.randn(Float32, length(stds_n), 94)
+    CUDA.@sync samples_noise4 = stds_n_cuda .* std_eps
 
 
-        CUDA.@sync c = c1 + c2
-
-        Data = Array(view(mean(c, dims=2), :, 1))  #mean over chunks
-
-        weight_norm = zeros(length(logbins))
-        @threads for i in eachindex(logbins)
-            res = sum((Omega_noiseh2_AA.(f_filtered[idx.==i], 2.5 * 1e9, 3 * 1e8, P, A)) .^ (-1))
-
-            weight_norm[i] = res
-        end
-
-        weighted_data = zeros(length(logbins))
-        @threads for i in eachindex(logbins)
-            data_filtered = Data[971:end][idx.==i]
-            num = (Omega_noiseh2_AA.(f_filtered[idx.==i], 2.5 * 1e9, 3 * 1e8, P, A)) .^ (-1)
-            w = num ./ weight_norm[i]
-
-            weighted_data[i] = sum(data_filtered .* w)
-        end
-
-    #"""
-        weighted_f = zeros(length(logbins))
-        @threads for i in eachindex(logbins)
-            num = (Omega_noiseh2_AA.(f_filtered[idx.==i], 2.5 * 1e9, 3 * 1e8, P, A)) .^ (-1)
-            w = num ./ weight_norm[i]
-
-        weighted_f[i] = sum(f_filtered[idx.==i] .* w)
-        end
-    #"""
-
-    elseif channel=="TT"
-        stds_n = sqrt.(Omega_noiseh2_TT.(f, 2.5 * 1e9, 3 * 1e8, P, A))  #compute sqrt(h^2Ωnoise(fi))
-        stds_n_cuda = CuArray(Float32.(stds_n))
-
-        std_eps = CUDA.randn(Float32, length(stds_n), 94)
-        CUDA.@sync samples_noise3 = stds_n_cuda .* std_eps
-
-        std_eps = CUDA.randn(Float32, length(stds_n), 94)
-        CUDA.@sync samples_noise4 = stds_n_cuda .* std_eps
+    CUDA.@sync c1 = (samples_noise3 .^ 2 + samples_noise4 .^ 2) / 2
 
 
-        CUDA.@sync c1 = (samples_noise3 .^ 2 + samples_noise4 .^ 2) / 2
+    CUDA.@sync c = c1 + c2
 
-        CUDA.@sync c = c1 + c2
+    Data = Array(view(mean(c, dims=2), :, 1))  #mean over chunks
 
-        Data = Array(view(mean(c, dims=2), :, 1))  #mean over chunks
+    weight_norm = zeros(length(logbins))
+    @threads for i in eachindex(logbins)
+        res = sum((Omega_noiseh2_AA.(f_filtered[idx.==i], 2.5 * 1e9, 3 * 1e8, P, A)) .^ (-1))
 
-        weight_norm = zeros(length(logbins))
-        @threads for i in eachindex(logbins)
-            res = sum((Omega_noiseh2_AA.(f_filtered[idx.==i], 2.5 * 1e9, 3 * 1e8, P, A)) .^ (-1))
-
-            weight_norm[i] = res
-        end
-
-        weighted_data = zeros(length(logbins))
-        @threads for i in eachindex(logbins)
-            data_filtered = Data[971:end][idx.==i]
-            num = (Omega_noiseh2_AA.(f_filtered[idx.==i], 2.5 * 1e9, 3 * 1e8, P, A)) .^ (-1)
-            w = num ./ weight_norm[i]
-
-            weighted_data[i] = sum(data_filtered .* w)
-        end
-
-    #"""
-        weighted_f = zeros(length(logbins))
-        @threads for i in eachindex(logbins)
-            num = (Omega_noiseh2_AA.(f_filtered[idx.==i], 2.5 * 1e9, 3 * 1e8, P, A)) .^ (-1)
-            w = num ./ weight_norm[i]
-
-        weighted_f[i] = sum(f_filtered[idx.==i] .* w)
-        end
-    #"""
+        weight_norm[i] = res
     end
-    Data_total = vcat(Data[1:970], weighted_data)
-    f_total = vcat(f[1:970], weighted_f)
+
+    weighted_data = zeros(length(logbins))
+    @threads for i in eachindex(logbins)
+        data_filtered = Data[971:end][idx.==i]
+        num = (Omega_noiseh2_AA.(f_filtered[idx.==i], 2.5 * 1e9, 3 * 1e8, P, A)) .^ (-1)
+        w = num ./ weight_norm[i]
+
+        weighted_data[i] = sum(data_filtered .* w)
+    end
+
+#"""
+    weighted_f = zeros(length(logbins))
+    @threads for i in eachindex(logbins)
+        num = (Omega_noiseh2_AA.(f_filtered[idx.==i], 2.5 * 1e9, 3 * 1e8, P, A)) .^ (-1)
+        w = num ./ weight_norm[i]
+
+    weighted_f[i] = sum(f_filtered[idx.==i] .* w)
+    end
+
+    Data_total_AA = vcat(Data[1:970], weighted_data)
+    f_total_AA = vcat(f[1:970], weighted_f)
+
+#"""
+
+    stds_n = sqrt.(Omega_noiseh2_TT.(f, 2.5 * 1e9, 3 * 1e8, P, A))  #compute sqrt(h^2Ωnoise(fi))
+    stds_n_cuda = CuArray(Float32.(stds_n))
+
+    std_eps = CUDA.randn(Float32, length(stds_n), 94)
+    CUDA.@sync samples_noise3 = stds_n_cuda .* std_eps
+
+    std_eps = CUDA.randn(Float32, length(stds_n), 94)
+    CUDA.@sync samples_noise4 = stds_n_cuda .* std_eps
 
 
-    return  log10.(Data_total), log10.(f_total)
+    CUDA.@sync c1 = (samples_noise3 .^ 2 + samples_noise4 .^ 2) / 2
+
+    CUDA.@sync c = c1 + c2
+
+    Data = Array(view(mean(c, dims=2), :, 1))  #mean over chunks
+
+    weight_norm = zeros(length(logbins))
+    @threads for i in eachindex(logbins)
+        res = sum((Omega_noiseh2_AA.(f_filtered[idx.==i], 2.5 * 1e9, 3 * 1e8, P, A)) .^ (-1))
+
+        weight_norm[i] = res
+    end
+
+    weighted_data = zeros(length(logbins))
+    @threads for i in eachindex(logbins)
+        data_filtered = Data[971:end][idx.==i]
+        num = (Omega_noiseh2_AA.(f_filtered[idx.==i], 2.5 * 1e9, 3 * 1e8, P, A)) .^ (-1)
+        w = num ./ weight_norm[i]
+
+        weighted_data[i] = sum(data_filtered .* w)
+    end
+
+#"""
+    weighted_f = zeros(length(logbins))
+    @threads for i in eachindex(logbins)
+        num = (Omega_noiseh2_AA.(f_filtered[idx.==i], 2.5 * 1e9, 3 * 1e8, P, A)) .^ (-1)
+        w = num ./ weight_norm[i]
+
+    weighted_f[i] = sum(f_filtered[idx.==i] .* w)
+    end
+
+    Data_total_TT = vcat(Data[1:970], weighted_data)
+    f_total_TT = vcat(f[1:970], weighted_f)
+    #"""
+
+    return  log10.(Data_total_AA), log10.(Data_total_TT), log10.(f_total_AA), log10.(f_total_TT)
 end
 
 
 function different_signals(z::zPeak,z_N::zNoise,channel::String, f,f_filtered, logbins::AbstractVector, idx::AbstractVector)
-    
+    CUDA.device_reset!
+
     P,A = z_N.val[1],z_N.val[2]
     stds_omega = sqrt.(Omega_peak(z.val[1],f,z.val[2],z.val[3])) 
     stds_omega_cuda = CuArray(Float32.(stds_omega))
@@ -230,102 +233,105 @@ function different_signals(z::zPeak,z_N::zNoise,channel::String, f,f_filtered, l
     CUDA.@sync c2 = (samples_noise5 .^ 2 + samples_noise6 .^ 2) ./ 2
 
 
-    if channel=="AA"
-
-        stds_n = sqrt.(Omega_noiseh2_AA.(f, 2.5 * 1e9, 3 * 1e8, P, A))  #compute sqrt(h^2Ωnoise(fi))
-        stds_n_cuda = CuArray(Float32.(stds_n))
-
-        std_eps = CUDA.randn(Float32, length(stds_n), 94)
-        CUDA.@sync samples_noise3 = stds_n_cuda .* std_eps
-
-        std_eps = CUDA.randn(Float32, length(stds_n), 94)
-        CUDA.@sync samples_noise4 = stds_n_cuda .* std_eps
 
 
-        CUDA.@sync c1 = (samples_noise3 .^ 2 + samples_noise4 .^ 2) / 2
+    stds_n = sqrt.(Omega_noiseh2_AA.(f, 2.5 * 1e9, 3 * 1e8, P, A))  #compute sqrt(h^2Ωnoise(fi))
+    stds_n_cuda = CuArray(Float32.(stds_n))
+
+    std_eps = CUDA.randn(Float32, length(stds_n), 94)
+    CUDA.@sync samples_noise3 = stds_n_cuda .* std_eps
+
+    std_eps = CUDA.randn(Float32, length(stds_n), 94)
+    CUDA.@sync samples_noise4 = stds_n_cuda .* std_eps
 
 
-        CUDA.@sync c = c1 + c2
-
-        Data = Array(view(mean(c, dims=2), :, 1))  #mean over chunks
-
-        weight_norm = zeros(length(logbins))
-        @threads for i in eachindex(logbins)
-            res = sum((Omega_noiseh2_AA.(f_filtered[idx.==i], 2.5 * 1e9, 3 * 1e8, P, A)) .^ (-1))
-
-            weight_norm[i] = res
-        end
-
-        weighted_data = zeros(length(logbins))
-        @threads for i in eachindex(logbins)
-            data_filtered = Data[971:end][idx.==i]
-            num = (Omega_noiseh2_AA.(f_filtered[idx.==i], 2.5 * 1e9, 3 * 1e8, P, A)) .^ (-1)
-            w = num ./ weight_norm[i]
-
-            weighted_data[i] = sum(data_filtered .* w)
-        end
-
-    #"""
-        weighted_f = zeros(length(logbins))
-        @threads for i in eachindex(logbins)
-            num = (Omega_noiseh2_AA.(f_filtered[idx.==i], 2.5 * 1e9, 3 * 1e8, P, A)) .^ (-1)
-            w = num ./ weight_norm[i]
-
-        weighted_f[i] = sum(f_filtered[idx.==i] .* w)
-        end
-    #"""
-
-    elseif channel=="TT"
-        stds_n = sqrt.(Omega_noiseh2_TT.(f, 2.5 * 1e9, 3 * 1e8, P, A))  #compute sqrt(h^2Ωnoise(fi))
-        stds_n_cuda = CuArray(Float32.(stds_n))
-
-        std_eps = CUDA.randn(Float32, length(stds_n), 94)
-        CUDA.@sync samples_noise3 = stds_n_cuda .* std_eps
-
-        std_eps = CUDA.randn(Float32, length(stds_n), 94)
-        CUDA.@sync samples_noise4 = stds_n_cuda .* std_eps
+    CUDA.@sync c1 = (samples_noise3 .^ 2 + samples_noise4 .^ 2) / 2
 
 
-        CUDA.@sync c1 = (samples_noise3 .^ 2 + samples_noise4 .^ 2) / 2
+    CUDA.@sync c = c1 + c2
 
-        CUDA.@sync c = c1 + c2
+    Data = Array(view(mean(c, dims=2), :, 1))  #mean over chunks
 
-        Data = Array(view(mean(c, dims=2), :, 1))  #mean over chunks
+    weight_norm = zeros(length(logbins))
+    @threads for i in eachindex(logbins)
+        res = sum((Omega_noiseh2_AA.(f_filtered[idx.==i], 2.5 * 1e9, 3 * 1e8, P, A)) .^ (-1))
 
-        weight_norm = zeros(length(logbins))
-        @threads for i in eachindex(logbins)
-            res = sum((Omega_noiseh2_AA.(f_filtered[idx.==i], 2.5 * 1e9, 3 * 1e8, P, A)) .^ (-1))
-
-            weight_norm[i] = res
-        end
-
-        weighted_data = zeros(length(logbins))
-        @threads for i in eachindex(logbins)
-            data_filtered = Data[971:end][idx.==i]
-            num = (Omega_noiseh2_AA.(f_filtered[idx.==i], 2.5 * 1e9, 3 * 1e8, P, A)) .^ (-1)
-            w = num ./ weight_norm[i]
-
-            weighted_data[i] = sum(data_filtered .* w)
-        end
-
-    #"""
-        weighted_f = zeros(length(logbins))
-        @threads for i in eachindex(logbins)
-            num = (Omega_noiseh2_AA.(f_filtered[idx.==i], 2.5 * 1e9, 3 * 1e8, P, A)) .^ (-1)
-            w = num ./ weight_norm[i]
-
-        weighted_f[i] = sum(f_filtered[idx.==i] .* w)
-        end
-    #"""
+        weight_norm[i] = res
     end
-    Data_total = vcat(Data[1:970], weighted_data)
-    f_total = vcat(f[1:970], weighted_f)
+
+    weighted_data = zeros(length(logbins))
+    @threads for i in eachindex(logbins)
+        data_filtered = Data[971:end][idx.==i]
+        num = (Omega_noiseh2_AA.(f_filtered[idx.==i], 2.5 * 1e9, 3 * 1e8, P, A)) .^ (-1)
+        w = num ./ weight_norm[i]
+
+        weighted_data[i] = sum(data_filtered .* w)
+    end
+
+#"""
+    weighted_f = zeros(length(logbins))
+    @threads for i in eachindex(logbins)
+        num = (Omega_noiseh2_AA.(f_filtered[idx.==i], 2.5 * 1e9, 3 * 1e8, P, A)) .^ (-1)
+        w = num ./ weight_norm[i]
+
+    weighted_f[i] = sum(f_filtered[idx.==i] .* w)
+    end
+
+    Data_total_AA = vcat(Data[1:970], weighted_data)
+    f_total_AA = vcat(f[1:970], weighted_f)
+
+#"""
+
+    stds_n = sqrt.(Omega_noiseh2_TT.(f, 2.5 * 1e9, 3 * 1e8, P, A))  #compute sqrt(h^2Ωnoise(fi))
+    stds_n_cuda = CuArray(Float32.(stds_n))
+
+    std_eps = CUDA.randn(Float32, length(stds_n), 94)
+    CUDA.@sync samples_noise3 = stds_n_cuda .* std_eps
+
+    std_eps = CUDA.randn(Float32, length(stds_n), 94)
+    CUDA.@sync samples_noise4 = stds_n_cuda .* std_eps
 
 
-    return  log10.(Data_total), log10.(f_total)
+    CUDA.@sync c1 = (samples_noise3 .^ 2 + samples_noise4 .^ 2) / 2
+
+    CUDA.@sync c = c1 + c2
+
+    Data = Array(view(mean(c, dims=2), :, 1))  #mean over chunks
+
+    weight_norm = zeros(length(logbins))
+    @threads for i in eachindex(logbins)
+        res = sum((Omega_noiseh2_AA.(f_filtered[idx.==i], 2.5 * 1e9, 3 * 1e8, P, A)) .^ (-1))
+
+        weight_norm[i] = res
+    end
+
+    weighted_data = zeros(length(logbins))
+    @threads for i in eachindex(logbins)
+        data_filtered = Data[971:end][idx.==i]
+        num = (Omega_noiseh2_AA.(f_filtered[idx.==i], 2.5 * 1e9, 3 * 1e8, P, A)) .^ (-1)
+        w = num ./ weight_norm[i]
+
+        weighted_data[i] = sum(data_filtered .* w)
+    end
+
+#"""
+    weighted_f = zeros(length(logbins))
+    @threads for i in eachindex(logbins)
+        num = (Omega_noiseh2_AA.(f_filtered[idx.==i], 2.5 * 1e9, 3 * 1e8, P, A)) .^ (-1)
+        w = num ./ weight_norm[i]
+
+    weighted_f[i] = sum(f_filtered[idx.==i] .* w)
+    end
+
+    Data_total_TT = vcat(Data[1:970], weighted_data)
+    f_total_TT = vcat(f[1:970], weighted_f)
+    #"""
+
+    return  log10.(Data_total_AA), log10.(Data_total_TT), log10.(f_total_AA), log10.(f_total_TT)
 end
 
 function different_signals(z::zWiggly,z_N::zNoise,channel::String, f,f_filtered, logbins::AbstractVector,idx::AbstractVector)
+    CUDA.device_reset!
 
     P,A = z_N.val[1],z_N.val[2]
 
@@ -343,102 +349,105 @@ function different_signals(z::zWiggly,z_N::zNoise,channel::String, f,f_filtered,
     CUDA.@sync c2 = (samples_noise5 .^ 2 + samples_noise6 .^ 2) ./ 2
 
 
-    if channel=="AA"
-
-        stds_n = sqrt.(Omega_noiseh2_AA.(f, 2.5 * 1e9, 3 * 1e8, P, A))  #compute sqrt(h^2Ωnoise(fi))
-        stds_n_cuda = CuArray(Float32.(stds_n))
-
-        std_eps = CUDA.randn(Float32, length(stds_n), 94)
-        CUDA.@sync samples_noise3 = stds_n_cuda .* std_eps
-
-        std_eps = CUDA.randn(Float32, length(stds_n), 94)
-        CUDA.@sync samples_noise4 = stds_n_cuda .* std_eps
 
 
-        CUDA.@sync c1 = (samples_noise3 .^ 2 + samples_noise4 .^ 2) / 2
+    stds_n = sqrt.(Omega_noiseh2_AA.(f, 2.5 * 1e9, 3 * 1e8, P, A))  #compute sqrt(h^2Ωnoise(fi))
+    stds_n_cuda = CuArray(Float32.(stds_n))
+
+    std_eps = CUDA.randn(Float32, length(stds_n), 94)
+    CUDA.@sync samples_noise3 = stds_n_cuda .* std_eps
+
+    std_eps = CUDA.randn(Float32, length(stds_n), 94)
+    CUDA.@sync samples_noise4 = stds_n_cuda .* std_eps
 
 
-        CUDA.@sync c = c1 + c2
-
-        Data = Array(view(mean(c, dims=2), :, 1))  #mean over chunks
-
-        weight_norm = zeros(length(logbins))
-        @threads for i in eachindex(logbins)
-            res = sum((Omega_noiseh2_AA.(f_filtered[idx.==i], 2.5 * 1e9, 3 * 1e8, P, A)) .^ (-1))
-
-            weight_norm[i] = res
-        end
-
-        weighted_data = zeros(length(logbins))
-        @threads for i in eachindex(logbins)
-            data_filtered = Data[971:end][idx.==i]
-            num = (Omega_noiseh2_AA.(f_filtered[idx.==i], 2.5 * 1e9, 3 * 1e8, P, A)) .^ (-1)
-            w = num ./ weight_norm[i]
-
-            weighted_data[i] = sum(data_filtered .* w)
-        end
-
-    #"""
-        weighted_f = zeros(length(logbins))
-        @threads for i in eachindex(logbins)
-            num = (Omega_noiseh2_AA.(f_filtered[idx.==i], 2.5 * 1e9, 3 * 1e8, P, A)) .^ (-1)
-            w = num ./ weight_norm[i]
-
-        weighted_f[i] = sum(f_filtered[idx.==i] .* w)
-        end
-    #"""
-
-    elseif channel=="TT"
-        stds_n = sqrt.(Omega_noiseh2_TT.(f, 2.5 * 1e9, 3 * 1e8, P, A))  #compute sqrt(h^2Ωnoise(fi))
-        stds_n_cuda = CuArray(Float32.(stds_n))
-
-        std_eps = CUDA.randn(Float32, length(stds_n), 94)
-        CUDA.@sync samples_noise3 = stds_n_cuda .* std_eps
-
-        std_eps = CUDA.randn(Float32, length(stds_n), 94)
-        CUDA.@sync samples_noise4 = stds_n_cuda .* std_eps
+    CUDA.@sync c1 = (samples_noise3 .^ 2 + samples_noise4 .^ 2) / 2
 
 
-        CUDA.@sync c1 = (samples_noise3 .^ 2 + samples_noise4 .^ 2) / 2
+    CUDA.@sync c = c1 + c2
 
-        CUDA.@sync c = c1 + c2
+    Data = Array(view(mean(c, dims=2), :, 1))  #mean over chunks
 
-        Data = Array(view(mean(c, dims=2), :, 1))  #mean over chunks
+    weight_norm = zeros(length(logbins))
+    @threads for i in eachindex(logbins)
+        res = sum((Omega_noiseh2_AA.(f_filtered[idx.==i], 2.5 * 1e9, 3 * 1e8, P, A)) .^ (-1))
 
-        weight_norm = zeros(length(logbins))
-        @threads for i in eachindex(logbins)
-            res = sum((Omega_noiseh2_AA.(f_filtered[idx.==i], 2.5 * 1e9, 3 * 1e8, P, A)) .^ (-1))
-
-            weight_norm[i] = res
-        end
-
-        weighted_data = zeros(length(logbins))
-        @threads for i in eachindex(logbins)
-            data_filtered = Data[971:end][idx.==i]
-            num = (Omega_noiseh2_AA.(f_filtered[idx.==i], 2.5 * 1e9, 3 * 1e8, P, A)) .^ (-1)
-            w = num ./ weight_norm[i]
-
-            weighted_data[i] = sum(data_filtered .* w)
-        end
-
-    #"""
-        weighted_f = zeros(length(logbins))
-        @threads for i in eachindex(logbins)
-            num = (Omega_noiseh2_AA.(f_filtered[idx.==i], 2.5 * 1e9, 3 * 1e8, P, A)) .^ (-1)
-            w = num ./ weight_norm[i]
-
-        weighted_f[i] = sum(f_filtered[idx.==i] .* w)
-        end
-    #"""
+        weight_norm[i] = res
     end
-    Data_total = vcat(Data[1:970], weighted_data)
-    f_total = vcat(f[1:970], weighted_f)
+
+    weighted_data = zeros(length(logbins))
+    @threads for i in eachindex(logbins)
+        data_filtered = Data[971:end][idx.==i]
+        num = (Omega_noiseh2_AA.(f_filtered[idx.==i], 2.5 * 1e9, 3 * 1e8, P, A)) .^ (-1)
+        w = num ./ weight_norm[i]
+
+        weighted_data[i] = sum(data_filtered .* w)
+    end
+
+#"""
+    weighted_f = zeros(length(logbins))
+    @threads for i in eachindex(logbins)
+        num = (Omega_noiseh2_AA.(f_filtered[idx.==i], 2.5 * 1e9, 3 * 1e8, P, A)) .^ (-1)
+        w = num ./ weight_norm[i]
+
+    weighted_f[i] = sum(f_filtered[idx.==i] .* w)
+    end
+
+    Data_total_AA = vcat(Data[1:970], weighted_data)
+    f_total_AA = vcat(f[1:970], weighted_f)
+
+#"""
+
+    stds_n = sqrt.(Omega_noiseh2_TT.(f, 2.5 * 1e9, 3 * 1e8, P, A))  #compute sqrt(h^2Ωnoise(fi))
+    stds_n_cuda = CuArray(Float32.(stds_n))
+
+    std_eps = CUDA.randn(Float32, length(stds_n), 94)
+    CUDA.@sync samples_noise3 = stds_n_cuda .* std_eps
+
+    std_eps = CUDA.randn(Float32, length(stds_n), 94)
+    CUDA.@sync samples_noise4 = stds_n_cuda .* std_eps
 
 
-    return  log10.(Data_total), log10.(f_total)
+    CUDA.@sync c1 = (samples_noise3 .^ 2 + samples_noise4 .^ 2) / 2
+
+    CUDA.@sync c = c1 + c2
+
+    Data = Array(view(mean(c, dims=2), :, 1))  #mean over chunks
+
+    weight_norm = zeros(length(logbins))
+    @threads for i in eachindex(logbins)
+        res = sum((Omega_noiseh2_AA.(f_filtered[idx.==i], 2.5 * 1e9, 3 * 1e8, P, A)) .^ (-1))
+
+        weight_norm[i] = res
+    end
+
+    weighted_data = zeros(length(logbins))
+    @threads for i in eachindex(logbins)
+        data_filtered = Data[971:end][idx.==i]
+        num = (Omega_noiseh2_AA.(f_filtered[idx.==i], 2.5 * 1e9, 3 * 1e8, P, A)) .^ (-1)
+        w = num ./ weight_norm[i]
+
+        weighted_data[i] = sum(data_filtered .* w)
+    end
+
+#"""
+    weighted_f = zeros(length(logbins))
+    @threads for i in eachindex(logbins)
+        num = (Omega_noiseh2_AA.(f_filtered[idx.==i], 2.5 * 1e9, 3 * 1e8, P, A)) .^ (-1)
+        w = num ./ weight_norm[i]
+
+    weighted_f[i] = sum(f_filtered[idx.==i] .* w)
+    end
+
+    Data_total_TT = vcat(Data[1:970], weighted_data)
+    f_total_TT = vcat(f[1:970], weighted_f)
+    #"""
+
+    return  log10.(Data_total_AA), log10.(Data_total_TT), log10.(f_total_AA), log10.(f_total_TT)
 end
 
 function different_signals(z::zDouble_peaks,z_N::zNoise,channel::String, f,f_filtered,logbins::AbstractVector, idx::AbstractVector)
+    CUDA.device_reset!
 
     P,A = z_N.val[1],z_N.val[2]
 
@@ -456,102 +465,108 @@ function different_signals(z::zDouble_peaks,z_N::zNoise,channel::String, f,f_fil
     CUDA.@sync c2 = (samples_noise5 .^ 2 + samples_noise6 .^ 2) ./ 2
 
 
-    if channel=="AA"
-
-        stds_n = sqrt.(Omega_noiseh2_AA.(f, 2.5 * 1e9, 3 * 1e8, P, A))  #compute sqrt(h^2Ωnoise(fi))
-        stds_n_cuda = CuArray(Float32.(stds_n))
-
-        std_eps = CUDA.randn(Float32, length(stds_n), 94)
-        CUDA.@sync samples_noise3 = stds_n_cuda .* std_eps
-
-        std_eps = CUDA.randn(Float32, length(stds_n), 94)
-        CUDA.@sync samples_noise4 = stds_n_cuda .* std_eps
 
 
-        CUDA.@sync c1 = (samples_noise3 .^ 2 + samples_noise4 .^ 2) / 2
+    stds_n = sqrt.(Omega_noiseh2_AA.(f, 2.5 * 1e9, 3 * 1e8, P, A))  #compute sqrt(h^2Ωnoise(fi))
+    stds_n_cuda = CuArray(Float32.(stds_n))
+
+    std_eps = CUDA.randn(Float32, length(stds_n), 94)
+    CUDA.@sync samples_noise3 = stds_n_cuda .* std_eps
+
+    std_eps = CUDA.randn(Float32, length(stds_n), 94)
+    CUDA.@sync samples_noise4 = stds_n_cuda .* std_eps
 
 
-        CUDA.@sync c = c1 + c2
-
-        Data = Array(view(mean(c, dims=2), :, 1))  #mean over chunks
-
-        weight_norm = zeros(length(logbins))
-        @threads for i in eachindex(logbins)
-            res = sum((Omega_noiseh2_AA.(f_filtered[idx.==i], 2.5 * 1e9, 3 * 1e8, P, A)) .^ (-1))
-
-            weight_norm[i] = res
-        end
-
-        weighted_data = zeros(length(logbins))
-        @threads for i in eachindex(logbins)
-            data_filtered = Data[971:end][idx.==i]
-            num = (Omega_noiseh2_AA.(f_filtered[idx.==i], 2.5 * 1e9, 3 * 1e8, P, A)) .^ (-1)
-            w = num ./ weight_norm[i]
-
-            weighted_data[i] = sum(data_filtered .* w)
-        end
-
-    #"""
-        weighted_f = zeros(length(logbins))
-        @threads for i in eachindex(logbins)
-            num = (Omega_noiseh2_AA.(f_filtered[idx.==i], 2.5 * 1e9, 3 * 1e8, P, A)) .^ (-1)
-            w = num ./ weight_norm[i]
-
-        weighted_f[i] = sum(f_filtered[idx.==i] .* w)
-        end
-    #"""
-
-    elseif channel=="TT"
-        stds_n = sqrt.(Omega_noiseh2_TT.(f, 2.5 * 1e9, 3 * 1e8, P, A))  #compute sqrt(h^2Ωnoise(fi))
-        stds_n_cuda = CuArray(Float32.(stds_n))
-
-        std_eps = CUDA.randn(Float32, length(stds_n), 94)
-        CUDA.@sync samples_noise3 = stds_n_cuda .* std_eps
-
-        std_eps = CUDA.randn(Float32, length(stds_n), 94)
-        CUDA.@sync samples_noise4 = stds_n_cuda .* std_eps
+    CUDA.@sync c1 = (samples_noise3 .^ 2 + samples_noise4 .^ 2) / 2
 
 
-        CUDA.@sync c1 = (samples_noise3 .^ 2 + samples_noise4 .^ 2) / 2
+    CUDA.@sync c = c1 + c2
 
-        CUDA.@sync c = c1 + c2
+    Data = Array(view(mean(c, dims=2), :, 1))  #mean over chunks
 
-        Data = Array(view(mean(c, dims=2), :, 1))  #mean over chunks
+    weight_norm = zeros(length(logbins))
+    @threads for i in eachindex(logbins)
+        res = sum((Omega_noiseh2_AA.(f_filtered[idx.==i], 2.5 * 1e9, 3 * 1e8, P, A)) .^ (-1))
 
-        weight_norm = zeros(length(logbins))
-        @threads for i in eachindex(logbins)
-            res = sum((Omega_noiseh2_AA.(f_filtered[idx.==i], 2.5 * 1e9, 3 * 1e8, P, A)) .^ (-1))
-
-            weight_norm[i] = res
-        end
-
-        weighted_data = zeros(length(logbins))
-        @threads for i in eachindex(logbins)
-            data_filtered = Data[971:end][idx.==i]
-            num = (Omega_noiseh2_AA.(f_filtered[idx.==i], 2.5 * 1e9, 3 * 1e8, P, A)) .^ (-1)
-            w = num ./ weight_norm[i]
-
-            weighted_data[i] = sum(data_filtered .* w)
-        end
-
-    #"""
-        weighted_f = zeros(length(logbins))
-        @threads for i in eachindex(logbins)
-            num = (Omega_noiseh2_AA.(f_filtered[idx.==i], 2.5 * 1e9, 3 * 1e8, P, A)) .^ (-1)
-            w = num ./ weight_norm[i]
-
-        weighted_f[i] = sum(f_filtered[idx.==i] .* w)
-        end
-    #"""
+        weight_norm[i] = res
     end
-    Data_total = vcat(Data[1:970], weighted_data)
-    f_total = vcat(f[1:970], weighted_f)
+
+    weighted_data = zeros(length(logbins))
+    @threads for i in eachindex(logbins)
+        data_filtered = Data[971:end][idx.==i]
+        num = (Omega_noiseh2_AA.(f_filtered[idx.==i], 2.5 * 1e9, 3 * 1e8, P, A)) .^ (-1)
+        w = num ./ weight_norm[i]
+
+        weighted_data[i] = sum(data_filtered .* w)
+    end
+
+#"""
+    weighted_f = zeros(length(logbins))
+    @threads for i in eachindex(logbins)
+        num = (Omega_noiseh2_AA.(f_filtered[idx.==i], 2.5 * 1e9, 3 * 1e8, P, A)) .^ (-1)
+        w = num ./ weight_norm[i]
+
+    weighted_f[i] = sum(f_filtered[idx.==i] .* w)
+    end
+
+    Data_total_AA = vcat(Data[1:970], weighted_data)
+    f_total_AA = vcat(f[1:970], weighted_f)
+
+#"""
+
+    stds_n = sqrt.(Omega_noiseh2_TT.(f, 2.5 * 1e9, 3 * 1e8, P, A))  #compute sqrt(h^2Ωnoise(fi))
+    stds_n_cuda = CuArray(Float32.(stds_n))
+
+    std_eps = CUDA.randn(Float32, length(stds_n), 94)
+    CUDA.@sync samples_noise3 = stds_n_cuda .* std_eps
+
+    std_eps = CUDA.randn(Float32, length(stds_n), 94)
+    CUDA.@sync samples_noise4 = stds_n_cuda .* std_eps
 
 
-    return  log10.(Data_total), log10.(f_total)
+    CUDA.@sync c1 = (samples_noise3 .^ 2 + samples_noise4 .^ 2) / 2
+
+    CUDA.@sync c = c1 + c2
+
+    Data = Array(view(mean(c, dims=2), :, 1))  #mean over chunks
+
+    weight_norm = zeros(length(logbins))
+    @threads for i in eachindex(logbins)
+        res = sum((Omega_noiseh2_AA.(f_filtered[idx.==i], 2.5 * 1e9, 3 * 1e8, P, A)) .^ (-1))
+
+        weight_norm[i] = res
+    end
+
+    weighted_data = zeros(length(logbins))
+    @threads for i in eachindex(logbins)
+        data_filtered = Data[971:end][idx.==i]
+        num = (Omega_noiseh2_AA.(f_filtered[idx.==i], 2.5 * 1e9, 3 * 1e8, P, A)) .^ (-1)
+        w = num ./ weight_norm[i]
+
+        weighted_data[i] = sum(data_filtered .* w)
+    end
+
+#"""
+    weighted_f = zeros(length(logbins))
+    @threads for i in eachindex(logbins)
+        num = (Omega_noiseh2_AA.(f_filtered[idx.==i], 2.5 * 1e9, 3 * 1e8, P, A)) .^ (-1)
+        w = num ./ weight_norm[i]
+
+    weighted_f[i] = sum(f_filtered[idx.==i] .* w)
+    end
+
+    Data_total_TT = vcat(Data[1:970], weighted_data)
+    f_total_TT = vcat(f[1:970], weighted_f)
+    #"""
+
+    return  log10.(Data_total_AA), log10.(Data_total_TT), log10.(f_total_AA), log10.(f_total_TT)
+
 end
 
 function different_signals(z::zBroken_powerlaw,z_N::zNoise,channel::String, f,f_filtered, logbins::AbstractVector, idx::AbstractVector)
+    
+    CUDA.device_reset!
+
     P,A = z_N.val[1],z_N.val[2]
 
     stds_omega = sqrt.(Omega_broken_powerlaw(z.val[1],f,z.val[2],z.val[3],z.val[4])) 
@@ -568,102 +583,105 @@ function different_signals(z::zBroken_powerlaw,z_N::zNoise,channel::String, f,f_
     CUDA.@sync c2 = (samples_noise5 .^ 2 + samples_noise6 .^ 2) ./ 2
 
 
-    if channel=="AA"
-
-        stds_n = sqrt.(Omega_noiseh2_AA.(f, 2.5 * 1e9, 3 * 1e8, P, A))  #compute sqrt(h^2Ωnoise(fi))
-        stds_n_cuda = CuArray(Float32.(stds_n))
-
-        std_eps = CUDA.randn(Float32, length(stds_n), 94)
-        CUDA.@sync samples_noise3 = stds_n_cuda .* std_eps
-
-        std_eps = CUDA.randn(Float32, length(stds_n), 94)
-        CUDA.@sync samples_noise4 = stds_n_cuda .* std_eps
 
 
-        CUDA.@sync c1 = (samples_noise3 .^ 2 + samples_noise4 .^ 2) / 2
+    stds_n = sqrt.(Omega_noiseh2_AA.(f, 2.5 * 1e9, 3 * 1e8, P, A))  #compute sqrt(h^2Ωnoise(fi))
+    stds_n_cuda = CuArray(Float32.(stds_n))
+
+    std_eps = CUDA.randn(Float32, length(stds_n), 94)
+    CUDA.@sync samples_noise3 = stds_n_cuda .* std_eps
+
+    std_eps = CUDA.randn(Float32, length(stds_n), 94)
+    CUDA.@sync samples_noise4 = stds_n_cuda .* std_eps
 
 
-        CUDA.@sync c = c1 + c2
-
-        Data = Array(view(mean(c, dims=2), :, 1))  #mean over chunks
-
-        weight_norm = zeros(length(logbins))
-        @threads for i in eachindex(logbins)
-            res = sum((Omega_noiseh2_AA.(f_filtered[idx.==i], 2.5 * 1e9, 3 * 1e8, P, A)) .^ (-1))
-
-            weight_norm[i] = res
-        end
-
-        weighted_data = zeros(length(logbins))
-        @threads for i in eachindex(logbins)
-            data_filtered = Data[971:end][idx.==i]
-            num = (Omega_noiseh2_AA.(f_filtered[idx.==i], 2.5 * 1e9, 3 * 1e8, P, A)) .^ (-1)
-            w = num ./ weight_norm[i]
-
-            weighted_data[i] = sum(data_filtered .* w)
-        end
-
-    #"""
-        weighted_f = zeros(length(logbins))
-        @threads for i in eachindex(logbins)
-            num = (Omega_noiseh2_AA.(f_filtered[idx.==i], 2.5 * 1e9, 3 * 1e8, P, A)) .^ (-1)
-            w = num ./ weight_norm[i]
-
-        weighted_f[i] = sum(f_filtered[idx.==i] .* w)
-        end
-    #"""
-
-    elseif channel=="TT"
-        stds_n = sqrt.(Omega_noiseh2_TT.(f, 2.5 * 1e9, 3 * 1e8, P, A))  #compute sqrt(h^2Ωnoise(fi))
-        stds_n_cuda = CuArray(Float32.(stds_n))
-
-        std_eps = CUDA.randn(Float32, length(stds_n), 94)
-        CUDA.@sync samples_noise3 = stds_n_cuda .* std_eps
-
-        std_eps = CUDA.randn(Float32, length(stds_n), 94)
-        CUDA.@sync samples_noise4 = stds_n_cuda .* std_eps
+    CUDA.@sync c1 = (samples_noise3 .^ 2 + samples_noise4 .^ 2) / 2
 
 
-        CUDA.@sync c1 = (samples_noise3 .^ 2 + samples_noise4 .^ 2) / 2
+    CUDA.@sync c = c1 + c2
 
-        CUDA.@sync c = c1 + c2
+    Data = Array(view(mean(c, dims=2), :, 1))  #mean over chunks
 
-        Data = Array(view(mean(c, dims=2), :, 1))  #mean over chunks
+    weight_norm = zeros(length(logbins))
+    @threads for i in eachindex(logbins)
+        res = sum((Omega_noiseh2_AA.(f_filtered[idx.==i], 2.5 * 1e9, 3 * 1e8, P, A)) .^ (-1))
 
-        weight_norm = zeros(length(logbins))
-        @threads for i in eachindex(logbins)
-            res = sum((Omega_noiseh2_AA.(f_filtered[idx.==i], 2.5 * 1e9, 3 * 1e8, P, A)) .^ (-1))
-
-            weight_norm[i] = res
-        end
-
-        weighted_data = zeros(length(logbins))
-        @threads for i in eachindex(logbins)
-            data_filtered = Data[971:end][idx.==i]
-            num = (Omega_noiseh2_AA.(f_filtered[idx.==i], 2.5 * 1e9, 3 * 1e8, P, A)) .^ (-1)
-            w = num ./ weight_norm[i]
-
-            weighted_data[i] = sum(data_filtered .* w)
-        end
-
-    #"""
-        weighted_f = zeros(length(logbins))
-        @threads for i in eachindex(logbins)
-            num = (Omega_noiseh2_AA.(f_filtered[idx.==i], 2.5 * 1e9, 3 * 1e8, P, A)) .^ (-1)
-            w = num ./ weight_norm[i]
-
-        weighted_f[i] = sum(f_filtered[idx.==i] .* w)
-        end
-    #"""
+        weight_norm[i] = res
     end
-    Data_total = vcat(Data[1:970], weighted_data)
-    f_total = vcat(f[1:970], weighted_f)
+
+    weighted_data = zeros(length(logbins))
+    @threads for i in eachindex(logbins)
+        data_filtered = Data[971:end][idx.==i]
+        num = (Omega_noiseh2_AA.(f_filtered[idx.==i], 2.5 * 1e9, 3 * 1e8, P, A)) .^ (-1)
+        w = num ./ weight_norm[i]
+
+        weighted_data[i] = sum(data_filtered .* w)
+    end
+
+#"""
+    weighted_f = zeros(length(logbins))
+    @threads for i in eachindex(logbins)
+        num = (Omega_noiseh2_AA.(f_filtered[idx.==i], 2.5 * 1e9, 3 * 1e8, P, A)) .^ (-1)
+        w = num ./ weight_norm[i]
+
+    weighted_f[i] = sum(f_filtered[idx.==i] .* w)
+    end
+
+    Data_total_AA = vcat(Data[1:970], weighted_data)
+    f_total_AA = vcat(f[1:970], weighted_f)
+
+#"""
+
+    stds_n = sqrt.(Omega_noiseh2_TT.(f, 2.5 * 1e9, 3 * 1e8, P, A))  #compute sqrt(h^2Ωnoise(fi))
+    stds_n_cuda = CuArray(Float32.(stds_n))
+
+    std_eps = CUDA.randn(Float32, length(stds_n), 94)
+    CUDA.@sync samples_noise3 = stds_n_cuda .* std_eps
+
+    std_eps = CUDA.randn(Float32, length(stds_n), 94)
+    CUDA.@sync samples_noise4 = stds_n_cuda .* std_eps
 
 
-    return  log10.(Data_total), log10.(f_total)
+    CUDA.@sync c1 = (samples_noise3 .^ 2 + samples_noise4 .^ 2) / 2
+
+    CUDA.@sync c = c1 + c2
+
+    Data = Array(view(mean(c, dims=2), :, 1))  #mean over chunks
+
+    weight_norm = zeros(length(logbins))
+    @threads for i in eachindex(logbins)
+        res = sum((Omega_noiseh2_AA.(f_filtered[idx.==i], 2.5 * 1e9, 3 * 1e8, P, A)) .^ (-1))
+
+        weight_norm[i] = res
+    end
+
+    weighted_data = zeros(length(logbins))
+    @threads for i in eachindex(logbins)
+        data_filtered = Data[971:end][idx.==i]
+        num = (Omega_noiseh2_AA.(f_filtered[idx.==i], 2.5 * 1e9, 3 * 1e8, P, A)) .^ (-1)
+        w = num ./ weight_norm[i]
+
+        weighted_data[i] = sum(data_filtered .* w)
+    end
+
+#"""
+    weighted_f = zeros(length(logbins))
+    @threads for i in eachindex(logbins)
+        num = (Omega_noiseh2_AA.(f_filtered[idx.==i], 2.5 * 1e9, 3 * 1e8, P, A)) .^ (-1)
+        w = num ./ weight_norm[i]
+
+    weighted_f[i] = sum(f_filtered[idx.==i] .* w)
+    end
+
+    Data_total_TT = vcat(Data[1:970], weighted_data)
+    f_total_TT = vcat(f[1:970], weighted_f)
+    #"""
+
+    return  log10.(Data_total_AA), log10.(Data_total_TT), log10.(f_total_AA), log10.(f_total_TT)
 end
 
 function different_signals(z::zThree_peaks,z_N::zNoise,channel::String, f,f_filtered,logbins::AbstractVector, idx::AbstractVector)
+    CUDA.device_reset!
 
     P,A = z_N.val[1],z_N.val[2]
 
@@ -681,99 +699,101 @@ function different_signals(z::zThree_peaks,z_N::zNoise,channel::String, f,f_filt
     CUDA.@sync c2 = (samples_noise5 .^ 2 + samples_noise6 .^ 2) ./ 2
 
 
-    if channel=="AA"
-
-        stds_n = sqrt.(Omega_noiseh2_AA.(f, 2.5 * 1e9, 3 * 1e8, P, A))  #compute sqrt(h^2Ωnoise(fi))
-        stds_n_cuda = CuArray(Float32.(stds_n))
-
-        std_eps = CUDA.randn(Float32, length(stds_n), 94)
-        CUDA.@sync samples_noise3 = stds_n_cuda .* std_eps
-
-        std_eps = CUDA.randn(Float32, length(stds_n), 94)
-        CUDA.@sync samples_noise4 = stds_n_cuda .* std_eps
 
 
-        CUDA.@sync c1 = (samples_noise3 .^ 2 + samples_noise4 .^ 2) / 2
+    stds_n = sqrt.(Omega_noiseh2_AA.(f, 2.5 * 1e9, 3 * 1e8, P, A))  #compute sqrt(h^2Ωnoise(fi))
+    stds_n_cuda = CuArray(Float32.(stds_n))
+
+    std_eps = CUDA.randn(Float32, length(stds_n), 94)
+    CUDA.@sync samples_noise3 = stds_n_cuda .* std_eps
+
+    std_eps = CUDA.randn(Float32, length(stds_n), 94)
+    CUDA.@sync samples_noise4 = stds_n_cuda .* std_eps
 
 
-        CUDA.@sync c = c1 + c2
-
-        Data = Array(view(mean(c, dims=2), :, 1))  #mean over chunks
-
-        weight_norm = zeros(length(logbins))
-        @threads for i in eachindex(logbins)
-            res = sum((Omega_noiseh2_AA.(f_filtered[idx.==i], 2.5 * 1e9, 3 * 1e8, P, A)) .^ (-1))
-
-            weight_norm[i] = res
-        end
-
-        weighted_data = zeros(length(logbins))
-        @threads for i in eachindex(logbins)
-            data_filtered = Data[971:end][idx.==i]
-            num = (Omega_noiseh2_AA.(f_filtered[idx.==i], 2.5 * 1e9, 3 * 1e8, P, A)) .^ (-1)
-            w = num ./ weight_norm[i]
-
-            weighted_data[i] = sum(data_filtered .* w)
-        end
-
-    #"""
-        weighted_f = zeros(length(logbins))
-        @threads for i in eachindex(logbins)
-            num = (Omega_noiseh2_AA.(f_filtered[idx.==i], 2.5 * 1e9, 3 * 1e8, P, A)) .^ (-1)
-            w = num ./ weight_norm[i]
-
-        weighted_f[i] = sum(f_filtered[idx.==i] .* w)
-        end
-    #"""
-
-    elseif channel=="TT"
-        stds_n = sqrt.(Omega_noiseh2_TT.(f, 2.5 * 1e9, 3 * 1e8, P, A))  #compute sqrt(h^2Ωnoise(fi))
-        stds_n_cuda = CuArray(Float32.(stds_n))
-
-        std_eps = CUDA.randn(Float32, length(stds_n), 94)
-        CUDA.@sync samples_noise3 = stds_n_cuda .* std_eps
-
-        std_eps = CUDA.randn(Float32, length(stds_n), 94)
-        CUDA.@sync samples_noise4 = stds_n_cuda .* std_eps
+    CUDA.@sync c1 = (samples_noise3 .^ 2 + samples_noise4 .^ 2) / 2
 
 
-        CUDA.@sync c1 = (samples_noise3 .^ 2 + samples_noise4 .^ 2) / 2
+    CUDA.@sync c = c1 + c2
 
-        CUDA.@sync c = c1 + c2
+    Data = Array(view(mean(c, dims=2), :, 1))  #mean over chunks
 
-        Data = Array(view(mean(c, dims=2), :, 1))  #mean over chunks
+    weight_norm = zeros(length(logbins))
+    @threads for i in eachindex(logbins)
+        res = sum((Omega_noiseh2_AA.(f_filtered[idx.==i], 2.5 * 1e9, 3 * 1e8, P, A)) .^ (-1))
 
-        weight_norm = zeros(length(logbins))
-        @threads for i in eachindex(logbins)
-            res = sum((Omega_noiseh2_AA.(f_filtered[idx.==i], 2.5 * 1e9, 3 * 1e8, P, A)) .^ (-1))
-
-            weight_norm[i] = res
-        end
-
-        weighted_data = zeros(length(logbins))
-        @threads for i in eachindex(logbins)
-            data_filtered = Data[971:end][idx.==i]
-            num = (Omega_noiseh2_AA.(f_filtered[idx.==i], 2.5 * 1e9, 3 * 1e8, P, A)) .^ (-1)
-            w = num ./ weight_norm[i]
-
-            weighted_data[i] = sum(data_filtered .* w)
-        end
-
-    #"""
-        weighted_f = zeros(length(logbins))
-        @threads for i in eachindex(logbins)
-            num = (Omega_noiseh2_AA.(f_filtered[idx.==i], 2.5 * 1e9, 3 * 1e8, P, A)) .^ (-1)
-            w = num ./ weight_norm[i]
-
-        weighted_f[i] = sum(f_filtered[idx.==i] .* w)
-        end
-    #"""
+        weight_norm[i] = res
     end
-    Data_total = vcat(Data[1:970], weighted_data)
-    f_total = vcat(f[1:970], weighted_f)
+
+    weighted_data = zeros(length(logbins))
+    @threads for i in eachindex(logbins)
+        data_filtered = Data[971:end][idx.==i]
+        num = (Omega_noiseh2_AA.(f_filtered[idx.==i], 2.5 * 1e9, 3 * 1e8, P, A)) .^ (-1)
+        w = num ./ weight_norm[i]
+
+        weighted_data[i] = sum(data_filtered .* w)
+    end
+
+#"""
+    weighted_f = zeros(length(logbins))
+    @threads for i in eachindex(logbins)
+        num = (Omega_noiseh2_AA.(f_filtered[idx.==i], 2.5 * 1e9, 3 * 1e8, P, A)) .^ (-1)
+        w = num ./ weight_norm[i]
+
+    weighted_f[i] = sum(f_filtered[idx.==i] .* w)
+    end
+
+    Data_total_AA = vcat(Data[1:970], weighted_data)
+    f_total_AA = vcat(f[1:970], weighted_f)
+
+#"""
+
+    stds_n = sqrt.(Omega_noiseh2_TT.(f, 2.5 * 1e9, 3 * 1e8, P, A))  #compute sqrt(h^2Ωnoise(fi))
+    stds_n_cuda = CuArray(Float32.(stds_n))
+
+    std_eps = CUDA.randn(Float32, length(stds_n), 94)
+    CUDA.@sync samples_noise3 = stds_n_cuda .* std_eps
+
+    std_eps = CUDA.randn(Float32, length(stds_n), 94)
+    CUDA.@sync samples_noise4 = stds_n_cuda .* std_eps
 
 
-    return  log10.(Data_total), log10.(f_total)
+    CUDA.@sync c1 = (samples_noise3 .^ 2 + samples_noise4 .^ 2) / 2
+
+    CUDA.@sync c = c1 + c2
+
+    Data = Array(view(mean(c, dims=2), :, 1))  #mean over chunks
+
+    weight_norm = zeros(length(logbins))
+    @threads for i in eachindex(logbins)
+        res = sum((Omega_noiseh2_AA.(f_filtered[idx.==i], 2.5 * 1e9, 3 * 1e8, P, A)) .^ (-1))
+
+        weight_norm[i] = res
+    end
+
+    weighted_data = zeros(length(logbins))
+    @threads for i in eachindex(logbins)
+        data_filtered = Data[971:end][idx.==i]
+        num = (Omega_noiseh2_AA.(f_filtered[idx.==i], 2.5 * 1e9, 3 * 1e8, P, A)) .^ (-1)
+        w = num ./ weight_norm[i]
+
+        weighted_data[i] = sum(data_filtered .* w)
+    end
+
+#"""
+    weighted_f = zeros(length(logbins))
+    @threads for i in eachindex(logbins)
+        num = (Omega_noiseh2_AA.(f_filtered[idx.==i], 2.5 * 1e9, 3 * 1e8, P, A)) .^ (-1)
+        w = num ./ weight_norm[i]
+
+    weighted_f[i] = sum(f_filtered[idx.==i] .* w)
+    end
+
+    Data_total_TT = vcat(Data[1:970], weighted_data)
+    f_total_TT = vcat(f[1:970], weighted_f)
+    #"""
+
+    return  log10.(Data_total_AA), log10.(Data_total_TT), log10.(f_total_AA), log10.(f_total_TT)
 end
 
 function different_signals(z::zType)
