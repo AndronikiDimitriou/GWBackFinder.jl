@@ -104,7 +104,7 @@ function zNoise(val::AbstractVector{T}) where {T<:Real}
     return zNoise{T}(val)
 end
 
-function different_signals(z::zPowerLaw,z_N::zNoise, channel::String, f,f_filtered, logbins:: AbstractVector, idx::AbstractVector)
+function different_signals(z::zPowerLaw,z_N::zNoise, f,f_filtered, logbins:: AbstractVector, idx::AbstractVector)
     CUDA.device_reset!
     P,A = z_N.val[1],z_N.val[2]
     stds_omega = sqrt.(Omega_powerlaw(z.val[1],f,z.val[2])) 
@@ -216,7 +216,7 @@ function different_signals(z::zPowerLaw,z_N::zNoise, channel::String, f,f_filter
 end
 
 
-function different_signals(z::zPeak,z_N::zNoise,channel::String, f,f_filtered, logbins::AbstractVector, idx::AbstractVector)
+function different_signals(z::zPeak,z_N::zNoise, f,f_filtered, logbins::AbstractVector, idx::AbstractVector)
     CUDA.device_reset!
 
     P,A = z_N.val[1],z_N.val[2]
@@ -330,7 +330,7 @@ function different_signals(z::zPeak,z_N::zNoise,channel::String, f,f_filtered, l
     return  log10.(Data_total_AA), log10.(Data_total_TT), log10.(f_total_AA), log10.(f_total_TT)
 end
 
-function different_signals(z::zWiggly,z_N::zNoise,channel::String, f,f_filtered, logbins::AbstractVector,idx::AbstractVector)
+function different_signals(z::zWiggly,z_N::zNoise, f,f_filtered, logbins::AbstractVector,idx::AbstractVector)
     CUDA.device_reset!
 
     P,A = z_N.val[1],z_N.val[2]
@@ -446,7 +446,7 @@ function different_signals(z::zWiggly,z_N::zNoise,channel::String, f,f_filtered,
     return  log10.(Data_total_AA), log10.(Data_total_TT), log10.(f_total_AA), log10.(f_total_TT)
 end
 
-function different_signals(z::zDouble_peaks,z_N::zNoise,channel::String, f,f_filtered,logbins::AbstractVector, idx::AbstractVector)
+function different_signals(z::zDouble_peaks,z_N::zNoise, f,f_filtered,logbins::AbstractVector, idx::AbstractVector)
     CUDA.device_reset!
 
     P,A = z_N.val[1],z_N.val[2]
@@ -563,7 +563,7 @@ function different_signals(z::zDouble_peaks,z_N::zNoise,channel::String, f,f_fil
 
 end
 
-function different_signals(z::zBroken_powerlaw,z_N::zNoise,channel::String, f,f_filtered, logbins::AbstractVector, idx::AbstractVector)
+function different_signals(z::zBroken_powerlaw,z_N::zNoise, f,f_filtered, logbins::AbstractVector, idx::AbstractVector)
     
     CUDA.device_reset!
 
@@ -680,7 +680,7 @@ function different_signals(z::zBroken_powerlaw,z_N::zNoise,channel::String, f,f_
     return  log10.(Data_total_AA), log10.(Data_total_TT), log10.(f_total_AA), log10.(f_total_TT)
 end
 
-function different_signals(z::zThree_peaks,z_N::zNoise,channel::String, f,f_filtered,logbins::AbstractVector, idx::AbstractVector)
+function different_signals(z::zThree_peaks,z_N::zNoise, f,f_filtered,logbins::AbstractVector, idx::AbstractVector)
     CUDA.device_reset!
 
     P,A = z_N.val[1],z_N.val[2]
