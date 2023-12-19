@@ -12,3 +12,8 @@ function binning(f)
     idx_27[1]=1
     return idx,idx_27,logbins_27,logbins,f_filtered
 end
+
+
+function write_sample(Data_total, path)
+    JLD2.@save(path,data= Data_total)
+end
