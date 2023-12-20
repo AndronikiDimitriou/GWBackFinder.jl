@@ -155,6 +155,6 @@ end
 
     Data_total = vcat(Data[1:970], weighted_data)
     f_total = vcat(f[1:970], weighted_f)
-    return  vcat((log10.(Data_total),e)), log10.(f_total)#, log10.(stds_omega.^2)
+    return  vcat(log10.(Data_total),e), log10.(f_total) #, log10.(stds_omega.^2)
 end
 
