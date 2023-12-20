@@ -49,7 +49,7 @@ logbins_27[19], logbins_27[20], logbins_27[21], logbins_27[22], logbins_27[23],
 logbins_27[24], logbins_27[25], logbins_27[26], logbins_27[27] 
 ```
 
-### Define values for parameters (z-> 27 slopes, 1 amplitude, 1 noise parameter A)
+### Define values for parameters (z $\rightarrow$ 27 slopes, 1 amplitude, 1 noise parameter A)
 ```
 z=rand(1000000,29) # uniform prior
 ```
