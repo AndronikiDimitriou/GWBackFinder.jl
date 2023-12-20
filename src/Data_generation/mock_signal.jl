@@ -143,7 +143,7 @@ end
         weighted_data[i] = sum(data_filtered .* w)
     end
 
-"""
+#"""
     weighted_f = zeros(length(logbins))
     @threads for i in eachindex(logbins)
         num = (Omega_noiseh2_AA.(f_filtered[idx.==i], 2.5 * 1e9, 3 * 1e8, e, z3)) .^ (-1)
@@ -151,10 +151,10 @@ end
 
     weighted_f[i] = sum(f_filtered[idx.==i] .* w)
     end
-"""
+#"""
 
     Data_total = vcat(Data[1:970], weighted_data)
-    #f_total = vcat(f[1:970], weighted_f)
-    return  vcat((log10.(Data_total),e))#, log10.(f_total), log10.(stds_omega.^2)
+    f_total = vcat(f[1:970], weighted_f)
+    return  vcat((log10.(Data_total),e)), log10.(f_total)#, log10.(stds_omega.^2)
 end
 
