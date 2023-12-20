@@ -62,11 +62,11 @@ end
 ### Plot an example 
 
 ```
-data,freq=GWBackFinder.model(z[100, :],f,idx,f_filtered,logbins_27,logbins, Sb1, Sb2, Sb3, Sb4, Sb5, Sb6, Sb7, Sb8, Sb9, Sb10,\
-Sb11, Sb12, Sb13, Sb14, Sb15, Sb16, Sb17, Sb18, Sb19, Sb20  , Sb21, Sb22, Sb23, Sb24, Sb25, Sb26)
+data,freq=GWBackFinder.model(z[100, :],f,idx,f_filtered,logbins_27,logbins, Sb1, Sb2, Sb3, Sb4, Sb5, Sb6, Sb7, Sb8, Sb9,
+Sb10,Sb11, Sb12, Sb13, Sb14, Sb15, Sb16, Sb17, Sb18, Sb19, Sb20  , Sb21, Sb22, Sb23, Sb24, Sb25, Sb26)
 plt.clf()
 plt.plot(freq, data[1][1])
 plt.show()
 plt.gcf()
 ```
-![alt text]([http://url/to/img.png](https://ibb.co/4RT16z5)https://ibb.co/4RT16z5)
+![plot](/home/zaldivar/Documents/Androniki/Github/GWBackFinder.jl/examples/plot.png)
