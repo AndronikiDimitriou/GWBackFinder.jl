@@ -69,4 +69,4 @@ plt.plot(freq, data[1][1])
 plt.show()
 plt.gcf()
 ```
-![plot](GWBackFinder.jl/examples/plot.png)
+![plot](/examples/plot.png)
