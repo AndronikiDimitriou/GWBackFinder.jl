@@ -55,7 +55,7 @@ z=rand(1000000,29) # uniform prior
     Sb4, Sb5, Sb6, Sb7, Sb8, Sb9, Sb10, Sb11, Sb12,
     Sb13, Sb14, Sb15, Sb16, Sb17, Sb18, Sb19, Sb20, Sb21,
     Sb22, Sb23, Sb24, Sb25, Sb26)
-    GWBackFinder.write_sample(Data_total,"$i.jld2")
+    GWBackFinder.write_sample(Data_total,"$i.jld2") #save as i.jld2, or use a different path
 end
 ```
 
