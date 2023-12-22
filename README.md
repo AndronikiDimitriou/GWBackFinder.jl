@@ -12,7 +12,6 @@ Clone/download this repository and then start Julia in the package folder, then 
 ```
 using Pkg
 Pkg.activate("./")
-Pkg.instantiate()
 using GWBackFinder
 
 ```
@@ -30,7 +29,6 @@ using ProgressMeter
 ```
 
 ### Define the frequency range
-
 ```
 f = range(start=3 * 1e-5, stop=0.5, step=1e-6) 
 ```
@@ -74,7 +72,7 @@ end
 data,freq=GWBackFinder.model(z[100, :],f,idx,f_filtered,logbins_27,logbins, Sb1, Sb2, Sb3, Sb4, Sb5, Sb6, Sb7, Sb8, Sb9,
 Sb10,Sb11, Sb12, Sb13, Sb14, Sb15, Sb16, Sb17, Sb18, Sb19, Sb20  , Sb21, Sb22, Sb23, Sb24, Sb25, Sb26)
 plt.clf()
-plt.plot(freq, data[1][1])
+plt.plot(freq, data[1:1970])
 plt.show()
 plt.gcf()
 ```
