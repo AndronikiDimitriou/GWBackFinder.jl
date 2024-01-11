@@ -32,9 +32,9 @@ using ProgressMeter
 ```
 f = range(start=3 * 1e-5, stop=0.5, step=1e-6) 
 ```
-### Define binned frequencies
+### Split in 26 bins. idx26 shows in which bin the frequency belongs to and logbins_26 are the boundaries of the bins . After we coarse grain the frequencies from f = 10−3 Hz to the maximum frequency fmax = 0.5 Hz), i.e., we bin them in 1000 intervals of equal log-spacing. idx shows in which of the 1000 bins the frequency belongs to and logbins the boundaries of the 1000 bins.
 ```
-idx,idx27,logbins_26,logbins,f_filtered=GWBackFinder.binning(f) 
+idx,idx26,logbins_26,logbins,f_filtered=GWBackFinder.binning(f) 
 ```
 ### Define breakpoints
 ```
@@ -47,9 +47,9 @@ logbins_26[19], logbins_26[20], logbins_26[21], logbins_26[22], logbins_26[23],
 logbins_26[24], logbins_26[25], logbins_26[26]
 ```
 
-### Define values for parameters (z $\rightarrow$ 27 slopes, 1 amplitude, 1 noise parameter A)
+### Define values for parameters (z $\rightarrow$ 26 slopes, 1 amplitude, 1 noise parameter A)
 ```
-z=rand(1000000,29) # for example uniform prior
+z=rand(1000000,28) # for example uniform prior
 ```
 
 ### Generate and save data
@@ -99,7 +99,7 @@ f = range(start=3 * 1e-5, stop=0.5, step=1e-6)
 ```
 ### Define binned frequencies
 ```
-idx,idx27,logbins_26,logbins,f_filtered=GWBackFinder.binning(f) 
+idx,idx26,logbins_26,logbins,f_filtered=GWBackFinder.binning(f) 
 ```
 
 ### Define values for noise parameter P
@@ -148,11 +148,10 @@ using PyPlot
 ```
 f = range(start=3 * 1e-5, stop=0.5, step=1e-6)
 ```
-### Split in 26 bins. idx26 shows in which bin the frequency belongs to and logbins_26 are the boundaries of the bins . After we coarse grain the frequencies from f = 10−3 Hz to the maximum frequency
-### fmax = 0.5 Hz), i.e., we bin them in 1000 intervals of equal log-spacing. idx shows in which of the 1000 bins the frequency belongs to and logbins the boundaries of the 1000 bins.
+### Split in 26 bins. idx26 shows in which bin the frequency belongs to and logbins_26 are the boundaries of the bins . After we coarse grain the frequencies from f = 10−3 Hz to the maximum frequency fmax = 0.5 Hz), i.e., we bin them in 1000 intervals of equal log-spacing. idx shows in which of the 1000 bins the frequency belongs to and logbins the boundaries of the 1000 bins.
 
 ```
-idx,idx27,logbins_26,logbins,f_filtered = GWBackFinder.binning(f)
+idx,idx26,logbins_26,logbins,f_filtered = GWBackFinder.binning(f)
 ```
 
 ### Define different signals
