@@ -1,6 +1,7 @@
 using Pkg
 using Revise
-Pkg.activate("/home/zaldivar/Documents/Androniki/Github/GWBackFinder.jl")
+Pkg.activate("./")
+#Pkg.activate("/home/zaldivar/Documents/Androniki/Github/GWBackFinder.jl")
 using GWBackFinder
 using PyPlot
 

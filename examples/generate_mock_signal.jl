@@ -1,12 +1,12 @@
 using Pkg
 using Revise
-Pkg.activate("/home/zaldivar/Documents/Androniki/Github/GWBackFinder.jl")
+Pkg.activate("./")
+#Pkg.activate("/home/zaldivar/Documents/Androniki/Github/GWBackFinder.jl")
 using GWBackFinder
 using PyPlot
 using NPZ
 using JLD2
 using ProgressMeter
-
 
 ### Define the frequency range
 f = range(start=3 * 1e-5, stop=0.5, step=1e-6) 
