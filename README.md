@@ -83,7 +83,7 @@ plt.gcf()
 ![plot](/examples/mock_signal.png)
 
 
-## Mock noise (see generate_mock_signal_noise.jl)
+* ## Mock noise (see generate_mock_signal_noise.jl)
 
 Import other packages 
 ```
@@ -136,7 +136,7 @@ plt.gcf()
 ![plot](/examples/mock_noise.png)
 
 
-## Different signals (see choose_template_signals.jl)
+* ## Different signals (see choose_template_signals.jl)
 Import other packages 
 
 ```
