@@ -18,7 +18,7 @@ using GWBackFinder
 
 # Examples
 
-## Mock signal (see generate_mock_signal.jl)
+* ## Mock signal (see generate_mock_signal.jl)
 
 Import other packages 
 ```
@@ -136,7 +136,7 @@ plt.gcf()
 ![plot](/examples/mock_noise.png)
 
 
-## Different signals
+## Different signals (see choose_template_signals.jl)
 Import other packages 
 
 ```
