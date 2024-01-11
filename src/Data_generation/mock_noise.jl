@@ -31,7 +31,7 @@ function model_noise(f,P)
     
     Data_noise = Data[1:2970]
 
-    #uncomment if you need frequencies. Not needed for data generation and training. 
+    #uncomment if you need frequencies. Not needed for data generation and training. Needed for plotting.
     #f_noise = f[1:2970]
     return  log10.(Data_noise) #, log10.(f_noise)
 end
