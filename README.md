@@ -221,4 +221,6 @@ plt.show()
 plt.legend()
 plt.gcf()
 
+![plot](/examples/Peak.png)
+
 ```
