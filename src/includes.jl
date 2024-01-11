@@ -8,7 +8,6 @@ using DataStructures
 using StatsBase
 using JLD2
 using CUDA
-
 #%%
 
 

@@ -1,3 +1,6 @@
+"""
+Define functions to generate noise according to https://arxiv.org/pdf/2009.11845.pdf
+"""
 function noise_Pims(f,P,c)
     return P^2*(10^(-12))^2*(1+(2*10^(-3)/f)^4)*(2*pi*f/c)^2
 end
