@@ -1,6 +1,3 @@
-
-
-
 function Omega_powerlaw(A_1,f,gamma1)
     """
     Calculate the power-law spectrum for a given amplitude and exponent.
@@ -782,9 +779,6 @@ function different_signals(z::zBroken_powerlaw,z_N::zNoise, f,f_filtered, logbin
     CUDA.@sync samples_noise6 = stds_omega_cuda .* std_eps
 
     CUDA.@sync c2 = (samples_noise5 .^ 2 + samples_noise6 .^ 2) ./ 2
-
-
-
 
     stds_n = sqrt.(Omega_noiseh2_AA.(f, 2.5 * 1e9, 3 * 1e8, P, A))  #compute sqrt(h^2Ωnoise(fi))
     stds_n_cuda = CuArray(Float32.(stds_n))

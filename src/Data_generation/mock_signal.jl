@@ -97,16 +97,16 @@ function f26(S, S0, n0, n1, n2, n3, n4, n5, n6, n7, n8, n9, n10, n11, n12, n13, 
 end
 
 
- function model(z1,f,idx,f_filtered,logbins_27,logbins,Sb1_new3, Sb2_new3, Sb3_new3, Sb4_new3, Sb5_new3, Sb6_new3, Sb7_new3, Sb8_new3, Sb9_new3, Sb10_new3, Sb11_new3, Sb12_new3, Sb13_new3, Sb14_new3, Sb15_new3, Sb16_new3, Sb17_new3, Sb18_new3, Sb19_new3, Sb20_new3, Sb21_new3, Sb22_new3, Sb23_new3, Sb24_new3, Sb25_new3)
+ function model(z1,f,idx,f_filtered,logbins_26,logbins,Sb1_new3, Sb2_new3, Sb3_new3, Sb4_new3, Sb5_new3, Sb6_new3, Sb7_new3, Sb8_new3, Sb9_new3, Sb10_new3, Sb11_new3, Sb12_new3, Sb13_new3, Sb14_new3, Sb15_new3, Sb16_new3, Sb17_new3, Sb18_new3, Sb19_new3, Sb20_new3, Sb21_new3, Sb22_new3, Sb23_new3, Sb24_new3, Sb25_new3)
     """
     Model function that generates data based on given parameters.
 
     Parameters:
-    - z1: Input singal parameters. The first 26 correspond to 26 slopes, the 27th on the amplitude and the 28th is noise parameter A.
+    - z1: Input singal parameters. The first 26 correspond to 26 slopes, the 26th on the amplitude and the 28th is noise parameter A.
     - f: Frequency vector.
     - idx: Index vector that shows in which one out of the 1000 bins the frequency belonges to.
     - f_filtered: Filtered frequency vector.
-    - logbins_27: Edges of the 27 bins.
+    - logbins_26: Edges of the 26 bins.
     - logbins: Edges of the 1000 bins .
     - Sb1_new3 to Sb25_new3: Threshold values where the powerlaw changes.
 
@@ -122,7 +122,7 @@ end
     z3 = z1[28]
 
     # Signal part. Following Data generation described in https://arxiv.org/pdf/2009.11845.pdf
-    stds_omega = [sqrt.(f26(fi, logbins_27[13], z[1], z[2], z[3], z[4], z[5], z[6], z[7], z[8], z[9], z[10], z[11], z[12], z[13], z[14], z[15], z[16], z[17], z[18], z[19], z[20], z[21], z[22], z[23], z[24], z[25], z[26], 10^(z2), Sb1_new3, Sb2_new3, Sb3_new3, Sb4_new3, Sb5_new3, Sb6_new3, Sb7_new3, Sb8_new3, Sb9_new3, Sb10_new3, Sb11_new3, Sb12_new3, Sb13_new3, Sb14_new3, Sb15_new3, Sb16_new3, Sb17_new3, Sb18_new3, Sb19_new3, Sb20_new3, Sb21_new3, Sb22_new3, Sb23_new3, Sb24_new3, Sb25_new3)) for fi in f]
+    stds_omega = [sqrt.(f26(fi, logbins_26[13], z[1], z[2], z[3], z[4], z[5], z[6], z[7], z[8], z[9], z[10], z[11], z[12], z[13], z[14], z[15], z[16], z[17], z[18], z[19], z[20], z[21], z[22], z[23], z[24], z[25], z[26], 10^(z2), Sb1_new3, Sb2_new3, Sb3_new3, Sb4_new3, Sb5_new3, Sb6_new3, Sb7_new3, Sb8_new3, Sb9_new3, Sb10_new3, Sb11_new3, Sb12_new3, Sb13_new3, Sb14_new3, Sb15_new3, Sb16_new3, Sb17_new3, Sb18_new3, Sb19_new3, Sb20_new3, Sb21_new3, Sb22_new3, Sb23_new3, Sb24_new3, Sb25_new3)) for fi in f]
     stds_omega_cuda = CuArray(Float32.(stds_omega))
 
     CUDA.device_reset!
@@ -172,7 +172,7 @@ end
         weighted_data[i] = sum(data_filtered .* w)
     end
 
-    # Uncomment if you need frequencies. Not needed for data generation and training. 
+    # Uncomment if you need frequencies. Not needed for data generation and training. Needed for plotting.
 """
     weighted_f = zeros(length(logbins))
     @threads for i in eachindex(logbins)
@@ -186,10 +186,10 @@ end
     # Concatenate  unbinned data before the 2971 element with the binned data. 
     Data_total = vcat(Data[1:2970], weighted_data)
 
-    #f_total = vcat(f[1:2970], weighted_f)   ##Uncomment if you need frequencies. Not needed for data generation and training. 
+    #f_total = vcat(f[1:2970], weighted_f)   ##Uncomment if you need frequencies. Not needed for data generation and training. Needed for plotting.
 
     # Concatenate data with the value of the noise parameter P 
-    return  vcat(log10.(Data_total),P) #, log10.(f_total) ##Uncomment if you need frequencies . Not needed for data generation and training. 
+    return  vcat(log10.(Data_total),P) #, log10.(f_total) ##Uncomment if you need frequencies . Not needed for data generation and training. Needed for plotting.
 
 end
 
