@@ -220,7 +220,6 @@ plt.title("Three peaks")
 plt.show()
 plt.legend()
 plt.gcf()
-
+```
 ![plot](/examples/Peak.png)
 
-```
