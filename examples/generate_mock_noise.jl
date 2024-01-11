@@ -1,8 +1,9 @@
 using Pkg
 using Revise
 Pkg.activate("./")
-#Pkg.activate("/home/zaldivar/Documents/Androniki/Github/GWBackFinder.jl")
+Pkg.activate("/home/zaldivar/Documents/Androniki/Github/GWBackFinder.jl")
 using GWBackFinder
+
 using PyPlot
 using NPZ
 using JLD2
@@ -23,11 +24,12 @@ z= npzread("/data/users/Androniki/Dani/z_noise.npy")
 
 
 ### Look at an example and plot it 
-data,freq=GWBackFinder.model_noise(f,z[1])
+data,freq=GWBackFinder.model_noise(f,z[1]) #to run it uncomment the frequency calculation in /home/zaldivar/Documents/Androniki/Github/GWBackFinder.jl/src/Data_generation/mock_noise.jl
 plt.clf()
 plt.plot(freq, data[1:2970])
-xlabel("f")
+xlabel("f[Hz]")
 ylabel("Ω_GW")
+plt.title("Mock noise")
 plt.show()
 plt.gcf()
 
