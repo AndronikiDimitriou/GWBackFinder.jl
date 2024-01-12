@@ -32,7 +32,7 @@ using ProgressMeter
 ```
 f = range(start=3 * 1e-5, stop=0.5, step=1e-6) 
 ```
-### Split in 26 bins. $\rm idx_{26}$ shows in which bin the frequency belongs to and logbins_26 are the boundaries of the bins . After we coarse grain the frequencies from $f = 3*10^{−3}$ Hz to the maximum frequency $f_{max} = 0.5$ Hz), i.e., we bin them in 1000 intervals of equal log-spacing. idx shows in which of the 1000 bins the frequency belongs to and logbins the boundaries of the 1000 bins.
+### Split in 26 bins. $\rm idx_{26}$ shows in which bin the frequency belongs to and $logbins_{26}$ are the boundaries of the bins . After we coarse grain the frequencies from $f = 3*10^{−3}$ Hz to the maximum frequency $f_{max} = 0.5$ Hz), i.e., we bin them in 1000 intervals of equal log-spacing. idx shows in which of the 1000 bins the frequency belongs to and logbins the boundaries of the 1000 bins.
 ```
 idx,idx26,logbins_26,logbins,f_filtered=GWBackFinder.binning(f) 
 ```
