@@ -221,5 +221,5 @@ plt.show()
 plt.legend()
 plt.gcf()
 ```
-![](/examples/peak.png){width=50%}
+![](/examples/peak.png)
 
