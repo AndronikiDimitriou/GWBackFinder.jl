@@ -97,7 +97,7 @@ function f26(S, S0, n0, n1, n2, n3, n4, n5, n6, n7, n8, n9, n10, n11, n12, n13, 
 end
 
 
- function model(z1,f,idx,f_filtered,logbins_26,logbins,Sb1, Sb2, Sb3, Sb4, Sb5, Sb6, Sb7, Sb8, Sb9, Sb10, Sb11, Sb12, Sb13, Sb14, Sb15, Sb16, Sb17, Sb18, Sb19, Sb20, Sb21, Sb22, Sb23, Sb24, Sb25)
+ function model_train_data(z1, z2, z3, z4, z5, z6, z7, z8, z9, z10, z11, z12, z13, z14, z15, z16, z17, z18, z19, z20, z21, z22, z23, z24, z25, z26, Amp , A,f, idx, f_filtered,logbins, Sb1, Sb2,   Sb3,   Sb4,   Sb5,   Sb6,   Sb7,   Sb8,   Sb9,   Sb10,   Sb11,   Sb12,   Sb13,   Sb14,   Sb15,   Sb16,   Sb17,   Sb18,   Sb19,   Sb20,   Sb21,   Sb22,   Sb23,   Sb24,   Sb25)
     """
     Model function that generates data based on given parameters.
 
@@ -106,7 +106,6 @@ end
     - f: Frequency vector.
     - idx: Index vector that shows in which one out of the 1000 bins the frequency belonges to.
     - f_filtered: Filtered frequency vector.
-    - logbins_26: Edges of the 26 bins.
     - logbins: Edges of the 1000 bins .
     - Sb1 to Sb25: Threshold values where the powerlaw changes.
 
@@ -117,12 +116,9 @@ end
 
     # Generate random value for the noise parameter P and save the slopes, the amplitude and the parameter in different vectors
     P  = 15+randn()*15*.2
-    z  =-12 .+z1[1:27]*(12-(-12))                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            
-    z2 =-14+z1[27]*(-6-(-14)) 
-    z3 = z1[28]
 
     # Signal part. Following Data generation described in https://arxiv.org/pdf/2009.11845.pdf
-    stds_omega = [sqrt.(f26(fi, logbins_26[13], z[1], z[2], z[3], z[4], z[5], z[6], z[7], z[8], z[9], z[10], z[11], z[12], z[13], z[14], z[15], z[16], z[17], z[18], z[19], z[20], z[21], z[22], z[23], z[24], z[25], z[26], 10^(z2), Sb1, Sb2, Sb3, Sb4, Sb5, Sb6, Sb7, Sb8, Sb9, Sb10, Sb11, Sb12, Sb13, Sb14, Sb15, Sb16, Sb17, Sb18, Sb19, Sb20, Sb21, Sb22, Sb23, Sb24, Sb25)) for fi in f]
+    stds_omega = [sqrt.(f26(fi, Sb13, z1, z2, z3, z4, z5, z6, z7, z8, z9, z10, z11, z12, z13, z14, z15, z16, z17, z18, z19, z20, z21, z22, z23, z24, z25, z26, 10^(Amp), Sb1, Sb2, Sb3, Sb4, Sb5, Sb6, Sb7, Sb8, Sb9, Sb10, Sb11, Sb12, Sb13, Sb14, Sb15, Sb16, Sb17, Sb18, Sb19, Sb20, Sb21, Sb22, Sb23, Sb24, Sb25)) for fi in f]
     stds_omega_cuda = CuArray(Float32.(stds_omega))
 
     CUDA.device_reset!
@@ -137,7 +133,7 @@ end
 
     # Noise part. Following Data generation described in https://arxiv.org/pdf/2009.11845.pdf
 
-    stds_n = sqrt.(Omega_noiseh2_AA.(f, 2.5 * 1e9, 3 * 1e8, P, z3))  #compute sqrt(h^2Ωnoise(fi))
+    stds_n = sqrt.(Omega_noiseh2_AA.(f, 2.5 * 1e9, 3 * 1e8, P, A))  #compute sqrt(h^2Ωnoise(fi))
     stds_n_cuda = CuArray(Float32.(stds_n))
 
     std_eps = CUDA.randn(Float32, length(stds_n), 94)
@@ -157,7 +153,7 @@ end
     # Bin the data and frequencies after the 2971 element in 1000 bins and calculate a value for each of them using nverse variance weighting. (see https://arxiv.org/pdf/2009.11845.pdf)
     weight_norm = zeros(length(logbins))
     @threads for i in eachindex(logbins)
-        res = sum((Omega_noiseh2_AA.(f_filtered[idx.==i], 2.5 * 1e9, 3 * 1e8, P, z3)) .^ (-1))
+        res = sum((Omega_noiseh2_AA.(f_filtered[idx.==i], 2.5 * 1e9, 3 * 1e8, P, A)) .^ (-1))
 
         weight_norm[i] = res
     end
@@ -165,30 +161,106 @@ end
     weighted_data = zeros(length(logbins))
     @threads for i in eachindex(logbins)
         data_filtered = Data[2971:end][idx.==i]
-        num = (Omega_noiseh2_AA.(f_filtered[idx.==i], 2.5 * 1e9, 3 * 1e8, P, z3)) .^ (-1)
+        num = (Omega_noiseh2_AA.(f_filtered[idx.==i], 2.5 * 1e9, 3 * 1e8, P, A)) .^ (-1)
         w = num ./ weight_norm[i]
 
         weighted_data[i] = sum(data_filtered .* w)
     end
 
-    # Uncomment if you need frequencies. Not needed for data generation and training. Needed for plotting.
-"""
+    # Concatenate  unbinned data before the 2971 element with the binned data. 
+    Data_total = vcat(Data[1:2970], weighted_data)
+
+    # Concatenate data with the value of the noise parameter P 
+    return  vcat(log10.(Data_total), P) 
+
+end
+
+function model_plot(z1, z2, z3, z4, z5, z6, z7, z8, z9, z10, z11, z12, z13, z14, z15, z16, z17, z18, z19, z20, z21, z22, z23, z24, z25, z26, Amp , A,f, idx, f_filtered,logbins, Sb1, Sb2,   Sb3,   Sb4,   Sb5,   Sb6,   Sb7,   Sb8,   Sb9,   Sb10,   Sb11,   Sb12,   Sb13,   Sb14,   Sb15,   Sb16,   Sb17,   Sb18,   Sb19,   Sb20,   Sb21,   Sb22,   Sb23,   Sb24,   Sb25)
+    """
+    Model function that generates data based on given parameters.
+
+    Parameters:
+    - z1: Input singal parameters. The first 26 correspond to 26 slopes, the 26th on the amplitude and the 28th is noise parameter A.
+    - f: Frequency vector.
+    - idx: Index vector that shows in which one out of the 1000 bins the frequency belonges to.
+    - f_filtered: Filtered frequency vector.
+    - logbins: Edges of the 1000 bins .
+    - Sb1 to Sb25: Threshold values where the powerlaw changes.
+
+    Returns:
+    - Data_total: Combined data vector.
+    - e: Randomly generated value sampled from a gaussian distribution (it is the noise parameter P).
+    """
+
+    # Generate random value for the noise parameter P and save the slopes, the amplitude and the parameter in different vectors
+    P  = 15+randn()*15*.2
+    
+    # Signal part. Following Data generation described in https://arxiv.org/pdf/2009.11845.pdf
+    stds_omega = [sqrt.(f26(fi, Sb13, z1, z2, z3, z4, z5, z6, z7, z8, z9, z10, z11, z12, z13, z14, z15, z16, z17, z18, z19, z20, z21, z22, z23, z24, z25, z26, 10^(Amp), Sb1, Sb2, Sb3, Sb4, Sb5, Sb6, Sb7, Sb8, Sb9, Sb10, Sb11, Sb12, Sb13, Sb14, Sb15, Sb16, Sb17, Sb18, Sb19, Sb20, Sb21, Sb22, Sb23, Sb24, Sb25)) for fi in f]
+    stds_omega_cuda = CuArray(Float32.(stds_omega))
+
+    CUDA.device_reset!
+    # Repeat for each chunk.
+    std_eps = CUDA.randn(Float32, length(stds_omega), 94)
+    CUDA.@sync samples_noise5 = stds_omega_cuda .* std_eps
+
+    std_eps = CUDA.randn(Float32, length(stds_omega), 94)
+    CUDA.@sync samples_noise6 = stds_omega_cuda .* std_eps
+
+    CUDA.@sync c2 = (samples_noise5 .^ 2 + samples_noise6 .^ 2) ./ 2
+
+    # Noise part. Following Data generation described in https://arxiv.org/pdf/2009.11845.pdf
+
+    stds_n = sqrt.(Omega_noiseh2_AA.(f, 2.5 * 1e9, 3 * 1e8, P, A))  #compute sqrt(h^2Ωnoise(fi))
+    stds_n_cuda = CuArray(Float32.(stds_n))
+
+    std_eps = CUDA.randn(Float32, length(stds_n), 94)
+    CUDA.@sync samples_noise3 = stds_n_cuda .* std_eps
+
+    std_eps = CUDA.randn(Float32, length(stds_n), 94)
+    CUDA.@sync samples_noise4 = stds_n_cuda .* std_eps
+
+    CUDA.@sync c1 = (samples_noise3 .^ 2 + samples_noise4 .^ 2) / 2
+
+    # Add signal and noise 
+    CUDA.@sync c = c1 + c2
+
+    # Calculate mean over chunks
+    Data = Array(view(mean(c, dims=2), :, 1))  
+
+    # Bin the data and frequencies after the 2971 element in 1000 bins and calculate a value for each of them using nverse variance weighting. (see https://arxiv.org/pdf/2009.11845.pdf)
+    weight_norm = zeros(length(logbins))
+    @threads for i in eachindex(logbins)
+        res = sum((Omega_noiseh2_AA.(f_filtered[idx.==i], 2.5 * 1e9, 3 * 1e8, P, A)) .^ (-1))
+
+        weight_norm[i] = res
+    end
+
+    weighted_data = zeros(length(logbins))
+    @threads for i in eachindex(logbins)
+        data_filtered = Data[2971:end][idx.==i]
+        num = (Omega_noiseh2_AA.(f_filtered[idx.==i], 2.5 * 1e9, 3 * 1e8, P, A)) .^ (-1)
+        w = num ./ weight_norm[i]
+
+        weighted_data[i] = sum(data_filtered .* w)
+    end
+
+
     weighted_f = zeros(length(logbins))
     @threads for i in eachindex(logbins)
-        num = (Omega_noiseh2_AA.(f_filtered[idx.==i], 2.5 * 1e9, 3 * 1e8, P, z3)) .^ (-1)
+        num = (Omega_noiseh2_AA.(f_filtered[idx.==i], 2.5 * 1e9, 3 * 1e8, P, A)) .^ (-1)
         w = num ./ weight_norm[i]
 
     weighted_f[i] = sum(f_filtered[idx.==i] .* w)
     end
-"""
+
 
     # Concatenate  unbinned data before the 2971 element with the binned data. 
     Data_total = vcat(Data[1:2970], weighted_data)
 
-    #f_total = vcat(f[1:2970], weighted_f)   ##Uncomment if you need frequencies. Not needed for data generation and training. Needed for plotting.
+    f_total = vcat(f[1:2970], weighted_f)  
 
     # Concatenate data with the value of the noise parameter P 
-    return  vcat(log10.(Data_total),P) #, log10.(f_total) ##Uncomment if you need frequencies . Not needed for data generation and training. Needed for plotting.
+    return  vcat(log10.(Data_total), P) , log10.(f_total) 
 
 end
-

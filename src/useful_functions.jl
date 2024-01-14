@@ -1,4 +1,3 @@
-
 function binning(f)
     """
     Bins the input array 'f' into two sets of indices based on logarithmic binning.
@@ -13,10 +12,10 @@ function binning(f)
     - logbins: Logarithmic bin edges for 1000 bins.
     - f_filtered: Filtered array 'f' excluding the first 2970 elements.
     """
-    # Filter the array 'f' starting from the 2971st element
+    # Filter the array 'f' starting from the 2971st element (0.003 Hz)
     f_filtered = f[2971:end]
     # Create 1000 logarithmic bins and get indices for each element in 'f_filtered'
-    logbins = 10 .^ range(log10(0.003), stop=log10(0.5), length=1000)
+    logbins = 10 .^ range(log10(f[2971]), stop=log10(0.5), length=1000)
     idx = [searchsortedlast(logbins, f_filtered[i]) for i in eachindex(f_filtered)]
     idx[1]=1
     # Create 26 logarithmic bins and get indices for each element in 'f'
