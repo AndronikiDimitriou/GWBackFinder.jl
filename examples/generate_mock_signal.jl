@@ -24,11 +24,8 @@ z= npzread("/data/users/Androniki/Dani/z_new.npy") #load parameters generated us
 #z=rand(1000000,29) # for example uniform prior
 
 ### Look at an example and plot it.
-z1, z2, z3, z4, z5, z6, z7, z8, z9, z10, z11, z12, z13, z14, z15, z16, z17, z18, z19, z20, z21, z22, z23, z24, z25, z26 = -12 .+z[1000000,1:27]*(12-(-12))                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          
-Amp =-14+z[1000000,27]*(-6-(-14)) 
-A= z[1000000,28]
 
-data,freq=GWBackFinder.model_plot(z1, z2, z3, z4, z5, z6, z7, z8, z9, z10, z11, z12, z13, z14, z15, z16, z17, z18, z19, z20, z21, z22, z23, z24, z25, z26, Amp, A, f, idx, f_filtered,logbins, Sb1, Sb2  , Sb3  , Sb4  , Sb5  , Sb6  , Sb7  , Sb8  , Sb9  , Sb10  , Sb11  , Sb12  , Sb13  , Sb14  , Sb15  , Sb16  , Sb17  , Sb18  , Sb19  , Sb20  , Sb21  , Sb22  , Sb23  , Sb24  , Sb25   ) #to run it uncomment the frequency calculation in ./GWBackFinder.jl/src/Data_generation/mock_signal.jl
+data,freq=GWBackFinder.model_plot(z[5,:],f,idx,f_filtered,logbins, Sb1, Sb2  , Sb3  , Sb4  , Sb5  , Sb6  , Sb7  , Sb8  , Sb9  , Sb10  , Sb11  , Sb12  , Sb13  , Sb14  , Sb15  , Sb16  , Sb17  , Sb18  , Sb19  , Sb20  , Sb21  , Sb22  , Sb23  , Sb24  , Sb25   )
 plt.clf()
 plt.plot(freq, data[1:3970])
 xlabel("f[Hz]")
@@ -38,19 +35,10 @@ plt.title("Mock signal")
 plt.gcf()
 #%%
 
-
 ### Generate and save data
 @showprogress for i in 1:5
-
-    z1, z2, z3, z4, z5, z6, z7, z8, z9, z10, z11, z12, z13, z14, z15, z16, z17, z18, z19, z20, z21, z22, z23, z24, z25, z26 = -12 .+z[i,1:27]*(12-(-12))                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          
-    Amp =-14+z[i,27]*(-6-(-14)) 
-    A= z[i,28]
-
-    Data_total= GWBackFinder.model_train_data(z1, z2, z3, z4, z5, z6, z7, z8, z9, z10, z11,
-    z12, z13, z14, z15, z16, z17, z18, z19, z20, z21, z22, z23, z24, z25, z26, 
-    Amp, A, f, idx, f_filtered,logbins, Sb1, Sb2  , Sb3  , Sb4  , Sb5  , Sb6  ,
+    Data_total= GWBackFinder.model_train_data(z[i,:], f, idx, f_filtered,logbins, Sb1, Sb2  , Sb3  , Sb4  , Sb5  , Sb6  ,
     Sb7  , Sb8  , Sb9  , Sb10  , Sb11  , Sb12  , Sb13  , Sb14  , Sb15  ,
      Sb16  , Sb17  , Sb18  , Sb19  , Sb20  , Sb21  , Sb22  , Sb23  , Sb24  , Sb25 )
-
     GWBackFinder.write_sample(Data_total,"./$(i-1).jld2")
 end

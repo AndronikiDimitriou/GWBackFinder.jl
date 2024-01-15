@@ -67,7 +67,7 @@ function model_noise_plot(f,P)
     Data = Array(view(mean(c1, dims=2), :, 1))  #mean over chunks
     
     Data_noise = Data[1:2970]
-
+    
     f_noise = f[1:2970]
     return  log10.(Data_noise) , log10.(f_noise)
 end

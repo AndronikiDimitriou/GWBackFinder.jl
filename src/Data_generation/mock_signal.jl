@@ -97,7 +97,7 @@ function f26(S, S0, n0, n1, n2, n3, n4, n5, n6, n7, n8, n9, n10, n11, n12, n13, 
 end
 
 
- function model_train_data(z1, z2, z3, z4, z5, z6, z7, z8, z9, z10, z11, z12, z13, z14, z15, z16, z17, z18, z19, z20, z21, z22, z23, z24, z25, z26, Amp , A,f, idx, f_filtered,logbins, Sb1, Sb2,   Sb3,   Sb4,   Sb5,   Sb6,   Sb7,   Sb8,   Sb9,   Sb10,   Sb11,   Sb12,   Sb13,   Sb14,   Sb15,   Sb16,   Sb17,   Sb18,   Sb19,   Sb20,   Sb21,   Sb22,   Sb23,   Sb24,   Sb25)
+ function model_train_data(z1, f, idx, f_filtered,logbins, Sb1, Sb2,   Sb3,   Sb4,   Sb5,   Sb6,   Sb7,   Sb8,   Sb9,   Sb10,   Sb11,   Sb12,   Sb13,   Sb14,   Sb15,   Sb16,   Sb17,   Sb18,   Sb19,   Sb20,   Sb21,   Sb22,   Sb23,   Sb24,   Sb25)
     """
     Model function that generates data based on given parameters.
 
@@ -111,14 +111,18 @@ end
 
     Returns:
     - Data_total: Combined data vector.
-    - e: Randomly generated value sampled from a gaussian distribution (it is the noise parameter P).
+    - P: Randomly generated value sampled from a gaussian distribution (it is the noise parameter P).
     """
+
+    z  =-12 .+z1[1:27]*(12-(-12))                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            
+    Amp =-14+z1[27]*(-6-(-14)) 
+    A = z1[28]
 
     # Generate random value for the noise parameter P and save the slopes, the amplitude and the parameter in different vectors
     P  = 15+randn()*15*.2
 
     # Signal part. Following Data generation described in https://arxiv.org/pdf/2009.11845.pdf
-    stds_omega = [sqrt.(f26(fi, Sb13, z1, z2, z3, z4, z5, z6, z7, z8, z9, z10, z11, z12, z13, z14, z15, z16, z17, z18, z19, z20, z21, z22, z23, z24, z25, z26, 10^(Amp), Sb1, Sb2, Sb3, Sb4, Sb5, Sb6, Sb7, Sb8, Sb9, Sb10, Sb11, Sb12, Sb13, Sb14, Sb15, Sb16, Sb17, Sb18, Sb19, Sb20, Sb21, Sb22, Sb23, Sb24, Sb25)) for fi in f]
+    stds_omega = [sqrt.(f26(fi, Sb13, z[1:26]..., 10^(Amp), Sb1, Sb2, Sb3, Sb4, Sb5, Sb6, Sb7, Sb8, Sb9, Sb10, Sb11, Sb12, Sb13, Sb14, Sb15, Sb16, Sb17, Sb18, Sb19, Sb20, Sb21, Sb22, Sb23, Sb24, Sb25)) for fi in f]
     stds_omega_cuda = CuArray(Float32.(stds_omega))
 
     CUDA.device_reset!
@@ -175,7 +179,8 @@ end
 
 end
 
-function model_plot(z1, z2, z3, z4, z5, z6, z7, z8, z9, z10, z11, z12, z13, z14, z15, z16, z17, z18, z19, z20, z21, z22, z23, z24, z25, z26, Amp , A,f, idx, f_filtered,logbins, Sb1, Sb2,   Sb3,   Sb4,   Sb5,   Sb6,   Sb7,   Sb8,   Sb9,   Sb10,   Sb11,   Sb12,   Sb13,   Sb14,   Sb15,   Sb16,   Sb17,   Sb18,   Sb19,   Sb20,   Sb21,   Sb22,   Sb23,   Sb24,   Sb25)
+
+function model_plot(z1, f, idx, f_filtered,logbins, Sb1, Sb2,   Sb3,   Sb4,   Sb5,   Sb6,   Sb7,   Sb8,   Sb9,   Sb10,   Sb11,   Sb12,   Sb13,   Sb14,   Sb15,   Sb16,   Sb17,   Sb18,   Sb19,   Sb20,   Sb21,   Sb22,   Sb23,   Sb24,   Sb25)
     """
     Model function that generates data based on given parameters.
 
@@ -191,14 +196,17 @@ function model_plot(z1, z2, z3, z4, z5, z6, z7, z8, z9, z10, z11, z12, z13, z14,
     - Data_total: Combined data vector.
     - e: Randomly generated value sampled from a gaussian distribution (it is the noise parameter P).
     """
+    z  =-12 .+z1[1:27]*(12-(-12))                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            
+    Amp =-14+z1[27]*(-6-(-14)) 
+    A = z1[28]
 
     # Generate random value for the noise parameter P and save the slopes, the amplitude and the parameter in different vectors
     P  = 15+randn()*15*.2
     
     # Signal part. Following Data generation described in https://arxiv.org/pdf/2009.11845.pdf
-    stds_omega = [sqrt.(f26(fi, Sb13, z1, z2, z3, z4, z5, z6, z7, z8, z9, z10, z11, z12, z13, z14, z15, z16, z17, z18, z19, z20, z21, z22, z23, z24, z25, z26, 10^(Amp), Sb1, Sb2, Sb3, Sb4, Sb5, Sb6, Sb7, Sb8, Sb9, Sb10, Sb11, Sb12, Sb13, Sb14, Sb15, Sb16, Sb17, Sb18, Sb19, Sb20, Sb21, Sb22, Sb23, Sb24, Sb25)) for fi in f]
+    stds_omega = [sqrt.(f26(fi, Sb13,z[1:26]..., 10^(Amp), Sb1, Sb2, Sb3, Sb4, Sb5, Sb6, Sb7, Sb8, Sb9, Sb10, Sb11, Sb12, Sb13, Sb14, Sb15, Sb16, Sb17, Sb18, Sb19, Sb20, Sb21, Sb22, Sb23, Sb24, Sb25)) for fi in f]
     stds_omega_cuda = CuArray(Float32.(stds_omega))
-
+    
     CUDA.device_reset!
     # Repeat for each chunk.
     std_eps = CUDA.randn(Float32, length(stds_omega), 94)
