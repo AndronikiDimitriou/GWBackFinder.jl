@@ -1,7 +1,7 @@
 using Pkg
 using Revise
 Pkg.activate("./")
-#Pkg.activate("/home/zaldivar/Documents/Androniki/Github/GWBackFinder.jl")
+Pkg.activate("/home/zaldivar/Documents/Androniki/Github/GWBackFinder.jl")
 using GWBackFinder
 using PyPlot
 using NPZ
@@ -25,7 +25,7 @@ z= npzread("/data/users/Androniki/Dani/z_noise.npy") #load parameters generated 
 
 
 ### Look at an example and plot it 
-data,freq=GWBackFinder.model_noise(f,z[1]) #to run it uncomment the frequency calculation in /home/zaldivar/Documents/Androniki/Github/GWBackFinder.jl/src/Data_generation/mock_noise.jl
+data,freq=GWBackFinder.model_noise_plot(f,z[1]) #to run it uncomment the frequency calculation in /home/zaldivar/Documents/Androniki/Github/GWBackFinder.jl/src/Data_generation/mock_noise.jl
 plt.clf()
 plt.plot(freq, data[1:2970])
 xlabel("f[Hz]")
@@ -37,7 +37,7 @@ plt.gcf()
 
 ### Generate and save data
 @showprogress for i in 1:1000000
-    Data_total= GWBackFinder.model_noise(f,z[i])
+    Data_total= GWBackFinder.model_noise_train_data(f,z[i])
     #print(length(Data_total))
     GWBackFinder.write_sample(Data_total,"/data/users/Androniki/Dani_new_noise/$(i-1).jld2")
 end
